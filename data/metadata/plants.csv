@@ -1,0 +1,342 @@
+PlantID,SerialNo,PlantName,Capacity_MW,Type,District,State,CommissionDate
+1,330,Gokak Power & Energy Ltd,20.0,Solar,Belagavi,Karnataka,2018-03-30
+2,331,"Suryodaya One Energy pvt. Ltd., (Shapoorji
+Pallonji Infrastructure Capital Company Pvt
+Ltd)",20.0,Solar,Belagavi,Karnataka,2018-03-30
+3,332,Green Energy Solar Enterprises Pvt Ltd,30.0,Solar,Tumakuru,Karnataka,2018-03-30
+4,333,Golden Hatcheries,10.0,Solar,Tumakuru,Karnataka,2018-03-30
+5,334,"Hero Solar Energy Pvt Ltd [Clean Solar
+power(tumkur) Pvt Ltd]",20.0,solar,Tumakuru,Karnataka,2018-03-30
+6,335,"Belgaum Solar Power Pvt. Ltd.,",20.0,Solar,Vijayapura,Karnataka,2018-03-30
+7,336,Mamadapur Solar Pvt Ltd,15.0,Solar,Vijayapura,Karnataka,2018-03-30
+8,337,"Shahi Exports Pvt. Ltd.,",40.0,Solar,Bidar,Karnataka,2018-03-30
+9,338,H P Rajesh,3.0,Solar,Davanagere,Karnataka,2018-03-31
+10,339,Global Tech Park Pvt Ltd,10.0,Solar,Tumakuru,Karnataka,2018-03-31
+11,340,Shri Keshav Cement & Infra Ltd,20.0,Solar,Koppal,Karnataka,2018-03-31
+12,341,"Avaada Power Prvt Ltd (Solarsys Non-
+Conventional Energy Pvt. Ltd.,)",28.0,Solar,Bagalkot,Karnataka,2018-03-31
+13,342,"Avaada Power Prvt Ltd (Solarsys Non-
+Conventional Energy Pvt. Ltd.,)",32.0,Solar,Koppal,Karnataka,2018-03-31
+14,343,PV Line Power One Pvt Ltd,10.0,Solar,Tumakuru,Karnataka,2018-03-31
+15,344,Ecoren Energy India Power Pvt ltd,20.0,Solar,Raichur,Karnataka,2018-03-31
+16,345,"Essel Green Energy Pvt Ltd [KN Muddebihal
+solar energy pvt ltd]",20.0,Solar,Vijayapura,Karnataka,2018-03-31
+17,346,Clean MaxHarsh Solar LLP(SP),24.88,Solar,Tumakuru,Karnataka,2018-03-31
+18,347,Surya jothi Energy Pvt Ltd,1.0,Solar,Chitradurga,Karnataka,2018-03-31
+19,348,ReNew Saur Vidut Pvt Ltd,5.0,Solar,Ramanagara,Karnataka,2018-03-31
+20,349,Hombale Construction And Estate Pvt Ltd,4.0,Solar,Chikkaballapura,Karnataka,2018-04-12
+21,350,"OPG Power Generation Pvt Ltd [Mayfair
+renewable energy pvt ltd]",20.0,Solar,Gadag,Karnataka,2018-04-30
+22,351,"Wardha Solar (Maharashtra)Pvt Ltd SPV of
+Paramapujya Solar Energy Pvt Ltd",40.0,solar,Koppal,Karnataka,2018-04-30
+23,352,Shakuntala Naik,1.0,Solar,Vijayapura,Karnataka,2018-05-03
+24,353,"OPG Power Generation Pvt Ltd [Aavanti
+Solar Energy Pvt Ltd]",20.0,Solar,Haveri,Karnataka,2018-05-08
+25,354,"Bagamane Green Power LLP (Doddanavar
+Global Energy Pvt Ltd)",20.0,Solar,Belagavi,Karnataka,2018-06-06
+26,355,KBJNL-MNRE Central Assistance,10.0,Solar,Bagalkot,Karnataka,2018-06-20
+27,356,"Clean Solar Power (Gulbarga) Pvt Limited
+SPV of Hero Solar Energy Private Limited",40.0,Solar,Kalaburagi,Karnataka,2018-06-28
+28,357,Vahini Irrigation Pvt Ltd,1.0,Solar,Tumakuru,Karnataka,2018-07-20
+29,358,"Hotel Panduranga International
+(Partnership Firm)",1.0,Solar,Tumakuru,Karnataka,2018-08-13
+30,359,"Infosys Limited,",30.0,Solar,Tumakuru,Karnataka,2018-08-29
+31,360,Bhramara Polymers Pvt Ltd,1.0,Solar,Chitradurga,Karnataka,2018-11-17
+32,361,"Sree sSiddaganga Hospitals Pvt. Ltd.,",1.0,Solar,Chitradurga,Karnataka,2018-11-17
+33,362,Giriraj Renewables PVt Ltd,50.0,Solar,Tumakuru,Karnataka,2018-12-20
+34,363,Basappa Phakirappa Hanji,3.0,Solar,Gadag,Karnataka,2018-12-26
+35,364,Smt. Vijayalakshmi,2.0,Solar,Tumakuru,Karnataka,2019-01-19
+36,365,"Tata Power Rnewable Energy Ltd.,",50.0,Solar,Tumakuru,Karnataka,2019-02-04
+37,366,"Tata Power Rnewable Energy Ltd.,",50.0,Solar,Tumakuru,Karnataka,2019-02-04
+38,367,Giriraj Renewables PVt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-02-06
+39,368,ReNew Solar Power Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-02-06
+40,369,ReNew Solar Power Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-02-22
+41,370,Giriraj Renewables PVt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-02-27
+42,371,ReNew Solar Power Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-03-01
+43,372,Azure Power India Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-03-06
+44,373,"Tata Power Rnewable Energy Ltd.,",50.0,Solar,Tumakuru,Karnataka,2019-03-06
+45,374,Azure Power India Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-03-12
+46,375,ReNew Solar Power Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-03-20
+47,376,ReNew Solar Power Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-03-20
+48,377,"Tata Power Rnewable Energy Ltd.,",50.0,Solar,Tumakuru,Karnataka,2019-03-25
+49,378,"Tata Power Rnewable Energy Ltd.,",50.0,Solar,Tumakuru,Karnataka,2019-03-25
+50,379,ReNew Solar Power Pvt Ltd,50.0,Solar,Tumakuru,Karnataka,2019-03-28
+51,380,"Wardha Solar (Maharashtra)Pvt Ltd SPV of
+Paramapujya Solar Energy Pvt Ltd",40.0,Solar,Vijayapura,Karnataka,
+52,381,"United Telecoms Ltd (M/s United Surya
+Energy Pvt Limited)",3.0,solar,Chitradurga,Karnataka,
+53,382,"Karanataka Power Corporation Limited,
+Bangalore",10.0,solar,Haveri,Karnataka,
+54,383,Sagitaur Venture India Pvt Ltd,34.0,Solar,Chitradurga,Karnataka,
+56,1,"Ria Power(Formerly known as Mallvalli
+Power plant Ltd )",4.5,Biomass,Mandya,Karnataka,2001-07-19
+57,2,Hassan Biomass Power Co. Pvt. Ltd.,8.0,Biomass,Hassan,Karnataka,2003-03-17
+58,3,Samsons Distilleries Pvt. Ltd.,2.0,Biomass,Davanagere,Karnataka,2003-06-18
+59,4,Bhagyanagar Solvents & Extractions Pvt. Ltd.,7.5,Biomass,Raichur,Karnataka,2003-09-01
+60,5,RK Power Gen Pvt. Ltd.,20.0,Biomass,Chitradurga,Karnataka,2004-01-01
+61,6,Indra Power Energies Ltd.,6.0,Biomass,Koppal,Karnataka,2004-02-13
+62,7,Koppal Green Power Ltd.,6.0,Biomass,Koppal,Karnataka,2005-01-01
+63,8,Power Onicks Ltd.,6.0,Biomass,Ballari,Karnataka,2005-01-05
+64,9,Konark Power Ltd.,7.03,Biomass,Tumakuru,Karnataka,2005-05-05
+65,10,Ravikiran Power Project Pvt. Ltd.,7.5,Biomass,Koppal,Karnataka,2005-06-01
+66,11,Koganti Power Pvt. Ltd.,7.5,Biomass,Raichur,Karnataka,2005-11-26
+67,13,"Gujarat Ambuja Exports Ltd (Biomass based
+Cogen)",2.44,Biomass,Haveri,Karnataka,2013-01-21
+68,14,Dharwad Bio Energy Pvt. Ltd.,10.0,Biomass,Dharwad,Karnataka,2013-01-31
+69,15,Haveri Bio Energy Pvt. Ltd.,10.0,Biomass,Haveri,Karnataka,2014-04-01
+70,16,Gujarat Ambuja Exports Ltd,2.85,Biomass,Haveri,Karnataka,2014-04-01
+71,17,Matrix Agro Pvt Ltd,6.0,Biomass,Kalaburagi,Karnataka,2016-12-09
+72,18,Raichur Bio Energies Pvt. Ltd.,9.0,Biomass,Raichur,Karnataka,2016-02-04
+73,19,Manchikonda Bio energy Pvt. Ltd,6.0,Biomass,Raichur,Karnataka,2016-03-01
+75,1,Ugar Sugars Works Ltd.,44.0,Co-gen,Belagavi,Karnataka,1998-05-28
+76,2,Shamanur Sugars Ltd.,22.0,Co-gen,Davanagere,Karnataka,1999-08-13
+77,3,Coromandel Sugars Ltd.,30.0,Co-gen,Mandya,Karnataka,2000-02-06
+78,4,Shree Renuka Sugars Ltd.,37.5,Co-gen,Belagavi,Karnataka,2000-03-07
+79,5,Bannari Amman Sugars Ltd.,16.0,Co-gen,Mysuru,Karnataka,2000-04-01
+80,6,"Prabhulingeshwara Sugar
+Works Ltd.",55.5,Co-gen,Bagalkot,Karnataka,2000-11-14
+81,7,"South India Paper Mills Ltd.
+(Biomass based Cogen)",7.8,Co-gen,Mysuru,Karnataka,2001-05-19
+82,8,"Raytar Sahakari Sakkare
+Karkhane Niyamita",12.5,Co-gen,Bagalkot,Karnataka,2001-12-08
+83,9,Jamakhandi Sugars Ltd.,29.8,Co-gen,Bagalkot,Karnataka,2002-02-08
+84,10,Godavari Bio Refineries Ltd.,45.56,Co-gen,Bagalkot,Karnataka,2002-09-01
+85,11,GEM Sugars Ltd.,22.5,Co-gen,Bagalkot,Karnataka,2002-10-31
+86,12,Bannari Amman Sugars Ltd.,20.3,Co-gen,Mysuru,Karnataka,2004-03-10
+87,13,Davanagere Sugar Co. Ltd.,24.0,Co-gen,Davanagere,Karnataka,2004-03-24
+88,14,"Doodhganga Krishna Sahakari
+Sakkare Karkhane Niyamita",24.0,Co-gen,Belagavi,Karnataka,2004-03-25
+89,15,NSL Sugars Ltd.,40.0,Co-gen,Mandya,Karnataka,2004-06-30
+90,16,"Venkateshwara Power Projects
+Ltd.",30.0,Co-gen,Belagavi,Karnataka,2004-11-03
+91,17,"Naranja Sahakari Sakkare
+Karkhane Niyamita",14.0,Co-gen,Bidar,Karnataka,2005-05-01
+92,18,"Vishwaraj Sugars Industries Ltd
+(Vishwanath Sugars Ltd.)",14.0,Co-gen,Belagavi,Karnataka,2006-01-06
+93,19,"Nandi Sahakari Sakkare
+Karkhane Niyamita",21.0,Co-gen,Vijayapura,Karnataka,2006-03-31
+94,20,Chamundeshwari Sugars Ltd.,26.0,Co-gen,Mandya,Karnataka,2008-04-02
+95,21,Indian Cane Power Ltd.,28.0,Co-gen,Bagalkot,Karnataka,2008-05-17
+96,22,Sadashiv Sugars Ltd.,16.0,Co-gen,Bagalkot,Karnataka,2008-06-01
+97,23,Parrys Sugar Industries Ltd.,31.5,Co-gen,Uttara Kannada,Karnataka,2008-06-02
+98,24,Nirani Sugars Ltd.,16.0,Co-gen,Bagalkot,Karnataka,2008-06-13
+99,25,"Hiranyakeshi Sahakari Sakkare
+Karkhane Niyamita",20.25,Co-gen,Belagavi,Karnataka,2008-11-15
+100,26,Bilagi Sugar Mill Ltd.,14.0,Co-gen,Bagalkot,Karnataka,2008-12-20
+101,27,"Mahatma Gandhi Sahakari
+Sakkare Karkhane Niyamita",13.0,Co-gen,Bidar,Karnataka,2009-07-04
+102,62,GM Sugars & Energy Limited,18.0,Co-gen,Haveri,Karnataka,2009-09-01
+103,28,Shree Renuka Sugars Ltd.,25.0,Co-gen,Kalaburagi,Karnataka,2009-12-01
+104,29,"Gokak SC & ST Sahakari Sakkare
+Karkhane Niyamita",14.0,Co-gen,Belagavi,Karnataka,2009-12-24
+105,30,"Kedarnath Sugar & Agro
+Chemicals Ltd.",15.0,Co-gen,Bagalkot,Karnataka,2010-03-02
+106,31,Vijaynagar Sugars Ltd.,35.5,Co-gen,Gadag,Karnataka,2010-03-04
+107,32,Nirani Sugars Ltd.,46.0,Co-gen,Bagalkot,Karnataka,2010-03-05
+108,33,Ugar Sugars Works Ltd.,15.0,Co-gen,Kalaburagi,Karnataka,2010-10-28
+109,34,Godavari Bio Refineries Ltd.,16.0,Co-gen,Bagalkot,Karnataka,2011-01-07
+110,35,Nirani Sugars Ltd.,10.0,Co-gen,Bagalkot,Karnataka,2011-06-18
+111,36,"Hiranyakeshi Sahakari Sakkare
+Karkhane Niyamita",26.0,Co-gen,Belagavi,Karnataka,2011-08-27
+112,37,NSL Sugars Ltd.,28.0,Co-gen,Ballari,Karnataka,2011-09-30
+113,38,"Core Green Sugar & Fuels Pvt.
+Ltd.",24.0,Co-gen,Yadgir,Karnataka,2011-10-16
+114,39,Shree Renuka Sugars Ltd.,68.0,Co-gen,Belagavi,Karnataka,2012-01-11
+115,40,Jamakhandi Sugars Ltd.,27.5,Co-gen,Bagalkot,Karnataka,2012-02-27
+116,41,NSL Sugars Ltd. Unit-2,34.0,Co-gen,Kalaburagi,Karnataka,2012-04-12
+117,42,"Athani Farmers Sugar factory
+ltd.",24.0,Co-gen,Belagavi,Karnataka,2012-10-01
+118,43,Satish Sugars Ltd.,34.0,Co-gen,Belagavi,Karnataka,2012-11-05
+119,44,KPR Sugar Mills Pvt. Ltd.,30.0,Co-gen,Vijayapura,Karnataka,2012-11-23
+120,45,Shree Renuka Sugars Ltd.,0.0,Co-gen,Belagavi,Karnataka,2012-12-01
+121,46,"Krishna Sahakari Sakkare
+Karkhane Niyamita",12.0,Co-gen,Belagavi,Karnataka,2013-02-08
+122,47,"Indian Sugar Manufacturing Co.
+Ltd.",19.5,Co-gen,Vijayapura,Karnataka,2013-02-24
+123,57,"Shiraguppi Sugars Works Pvt.
+Ltd.",6.0,Co-gen,Belagavi,Karnataka,2013-04-05
+124,48,Manali Sugar Ltd.,15.0,Co-gen,Vijayapura,Karnataka,2013-04-20
+125,49,Shiraguppi Sugar Works Ltd.,20.4,Co-gen,Belagavi,Karnataka,2013-05-01
+126,50,"Parry Sugars Industries Limited
+(Dhanalakshmi Sahakari
+Sakkare Karkhane",15.5,Co-gen,Belagavi,Karnataka,2013-08-01
+127,51,Shivashakthi Sugars Ltd.,15.0,Co-gen,Belagavi,Karnataka,2013-09-01
+128,52,"Shivasagar Sugar & Agro
+Products Ltd.",18.0,Co-gen,Belagavi,Karnataka,2013-09-30
+129,53,Soubhagya Lakshmi Sugars Ltd.,18.0,Co-gen,Belagavi,Karnataka,2013-12-15
+130,54,"Shri Balaji Sugars & Chemicals
+Pvt.Ltd",18.0,Co-gen,Vijayapura,Karnataka,2014-03-31
+131,55,Basaveshwara Sugars Ltd.,28.0,Co-gen,Vijayapura,Karnataka,2014-03-31
+132,63,Bhalakeshwar Sugars Ltd,14.0,Co-gen,Bidar,Karnataka,2015-01-10
+133,56,Bannari Amman Sugars Ltd.,20.0,Co-gen,Chamarajanagar,Karnataka,2015-04-01
+134,61,Indian Cane Power Ltd.,55.0,Co-gen,Bagalkot,Karnataka,2015-08-12
+135,58,Shivashakthi Sugars Limited,35.0,Co-gen,Belagavi,Karnataka,2016-03-01
+136,59,Sri Sai Priya Sugars Limited,50.0,Co-gen,Bagalkot,Karnataka,2016-10-13
+137,60,Belgaum sugars private Limited,14.0,Co-gen,Belagavi,Karnataka,2017-03-31
+138,64,Bilagi Sugar Mill Ltd.,16.0,Co-gen,Bagalkot,Karnataka,2017-12-01
+139,65,Soverign,20.0,Co-gen,Bagalkot,Karnataka,2017-12-01
+140,66,Halasiddinath,15.0,Co-gen,Belagavi,Karnataka,2017-12-01
+141,67,Bidar Kissan,15.0,Co-gen,Bidar,Karnataka,2017-12-01
+142,68,Bhimashankar,14.0,Co-gen,Vijayapura,Karnataka,2017-12-01
+143,70,Harsha Sugars Limited,30.0,Co-gen,Belagavi,Karnataka,2018-08-01
+144,71,"M/s MRN Cane Power (India)
+Ltd",30.0,Co-gen,Bagalkot,Karnataka,2019-02-24
+145,72,Athani Sugars Limited,28.0,Co-gen,Belagavi,Karnataka,2019-04-20
+146,69,Mylar Sugars,25.0,Co-gen,Ballari,Karnataka,
+148,1,KPCL,17.2,Hydro,Mandya,Karnataka,1940-06-30
+149,2,KPCL,0.4,Hydro,Raichur,Karnataka,1990-01-24
+150,3,KPCL,1.0,Hydro,Raichur,Karnataka,1992-11-26
+151,4,Bhoruka Power Corporation Ltd.,18.0,Hydro,Koppal,Karnataka,1992-11-29
+152,5,KPCL,4.5,Hydro,Shimoga,Karnataka,1993-03-29
+153,6,KPCL,4.5,Hydro,Shimoga,Karnataka,1993-04-02
+154,7,KPCL,9.0,Hydro,Koppal,Karnataka,1994-03-31
+155,8,KPCL,0.35,Hydro,Raichur,Karnataka,1993-12-24
+156,9,Bhoruka Power Corporation Ltd.,5.2,Hydro,Yadgir,Karnataka,1997-03-18
+157,10,"Brindavan Hydro Power Pvt. Ltd
+(Formerly Dandeli Steel & Ferro
+Alloys Ltd).,",1.5,Hydro,Shimoga,Karnataka,1997-05-04
+158,11,"Gokak Power and Energy
+Limited (Formerly Gokak
+Textiles Ltd. (Gokak Mills",2.8,Hydro,Belagavi,Karnataka,1997-04-01
+159,12,"Gokak Power and Energy
+Limited (Formerly Gokak
+Textiles Ltd. (Gokak Mills",3.5,Hydro,Belagavi,Karnataka,1997-05-04
+160,13,Graphite India Ltd.,18.0,Hydro,Mysuru,Karnataka,1997-10-13
+161,14,"Yuken India Ltd.,",0.35,Hydro,Mandya,Karnataka,1998-07-03
+162,15,Cauvery Hydro Energy Ltd.,3.0,Hydro,Mandya,Karnataka,1998-09-10
+163,16,Bhoruka Power Corporation Ltd.,1.4,Hydro,Yadgir,Karnataka,1998-11-28
+164,17,"Murudeshwara Power
+Corporation Ltd.,",11.6,Hydro,Vijayapura,Karnataka,1999-07-14
+165,18,Energy Development Co. Ltd.,9.0,Hydro,Kodagu,Karnataka,1999-07-19
+166,19,Bhoruka Power Corporation Ltd.,2.0,Hydro,Yadgir,Karnataka,1999-08-06
+167,20,Tungabhadra Steel Products Ltd.,2.4,Hydro,Belagavi,Karnataka,1999-09-17
+168,21,Kilara Power Pvt. Ltd.,2.0,Hydro,Mandya,Karnataka,2000-03-31
+169,22,"Maruthi Power Gen (India) Pvt.
+Ltd.",3.0,Hydro,Hassan,Karnataka,2000-07-10
+170,23,"Sandur Manganese & Iron Ores
+Ltd.",16.0,Hydro,Hassan,Karnataka,2001-04-20
+171,24,Bhoruka Power Corporation Ltd.,3.0,Hydro,Mysuru,Karnataka,2001-07-09
+172,25,Atria Power Corporation Ltd.,6.6,Hydro,Mandya,Karnataka,2001-08-01
+173,26,Amogha Power Projects Pvt. Ltd.,1.5,Hydro,Hassan,Karnataka,2001-10-01
+174,27,Atria Power Corporation Ltd.,18.0,Hydro,Mandya,Karnataka,2001-11-01
+175,28,"Vijayalakshmi Hydro Power Pvt.
+Ltd.",1.75,Hydro,Mandya,Karnataka,2002-04-03
+176,29,Moodabagil Power company,0.5,Hydro,Shimoga,Karnataka,2002-09-19
+177,30,"Kalson Power Tech. Pvt. Ltd.,
+(Transferred to M/s Master
+Power",3.0,Hydro,Mysuru,Karnataka,2002-12-31
+178,31,"Maruthi Power Gen (India) Pvt.
+Ltd.",5.0,Hydro,Mysuru,Karnataka,2002-12-31
+179,32,"Subhash Kabini Power
+Corporation Pvt. Ltd.",20.0,Hydro,Mysuru,Karnataka,2003-06-24
+180,33,Graphite India Ltd.,1.5,Hydro,Mandya,Karnataka,2003-07-17
+181,34,Bhoruka Power Corporation Ltd.,1.0,Hydro,Yadgir,Karnataka,2003-08-30
+182,35,Bhoruka Power Corporation Ltd.,3.5,Hydro,Mandya,Karnataka,2004-09-01
+183,36,"Sai Spurthi Power Pvt. Ltd.,",10.25,Hydro,Ramanagara,Karnataka,2004-12-01
+184,37,SLS Power Industries Ltd.,4.5,Hydro,Ballari,Karnataka,2004-04-03
+185,38,"Sahyadri Power Company,",0.4,Hydro,Shimoga,Karnataka,2005-01-01
+186,39,"International Power Corporation
+Ltd.",18.0,Hydro,Hassan,Karnataka,2005-01-10
+187,40,Trishul Power Pvt. Ltd.,4.0,Hydro,Mandya,Karnataka,2005-06-28
+188,41,"Sandur Manganese & Iron Ores
+Ltd.",22.5,Hydro,Udupi,Karnataka,2005-06-29
+189,42,Pioneer Genco Ltd.,24.75,Hydro,Mandya,Karnataka,2005-07-01
+190,43,Jyothi Jalashakthi Pvt. Ltd.,0.3,Hydro,Ballari,Karnataka,2005-11-01
+191,44,"Bhoruka Power Corporation Ltd.
+(Merged File No. SH-46 & SH-47)",9.0,Hydro,Dakshina Kannada,Karnataka,2006-04-01
+192,45,Atria Power Corporation Ltd.,12.0,Hydro,Mandya,Karnataka,2006-06-01
+193,46,SLS Power Industries Ltd.,6.25,Hydro,Chamarajanagar,Karnataka,2006-09-14
+194,47,"Sandur Manganese & Iron Ores
+Ltd.",8.0,Hydro,Hassan,Karnataka,2007-04-28
+195,48,Paschim Hydro Energy Pvt. Ltd.,9.0,Hydro,Hassan,Karnataka,2007-04-30
+196,49,Pusala Power Projects Pvt. Ltd.,6.0,Hydro,Ballari,Karnataka,2007-05-01
+197,50,Bhoruka Power Corporation Ltd.,24.0,Hydro,Yadgir,Karnataka,2007-06-22
+198,51,Pioneer Power Corporation Ltd.,24.75,Hydro,Chamarajanagar,Karnataka,2007-07-29
+199,52,Cauvery Hydro Energy Ltd.,4.5,Hydro,Mandya,Karnataka,2007-09-03
+200,53,SRS Energy Pvt. Ltd.,10.0,Hydro,Yadgir,Karnataka,2007-09-19
+201,54,Venika Green Power Pvt. Ltd.,0.75,Hydro,Mandya,Karnataka,2007-09-27
+202,55,"Ambhuthirtha Power Private
+Limited",22.0,Hydro,Shimoga,Karnataka,2007-12-06
+203,56,"Trinetra Energy Conversions Pvt
+Ltd (Formerly Trinetra Energy
+Conversions Ltd.),",4.5,Hydro,Dakshina Kannada,Karnataka,2008-07-05
+204,57,Mrijara Powers,0.75,Hydro,Shimoga,Karnataka,2008-10-24
+205,58,"Narayanapur Power Company
+Ltd.,",12.0,Hydro,Raichur,Karnataka,2009-01-19
+206,59,Limbavali Power Pvt. Ltd.,12.0,Hydro,Mandya,Karnataka,2009-04-07
+207,60,"Sandur Manganese & Iron Ores
+Ltd.",15.0,Hydro,Udupi,Karnataka,2009-04-17
+208,61,Shamili hydel Power Project,12.0,Hydro,Udupi,Karnataka,2009-06-21
+209,62,Bhoruka Power Corporation Ltd.,10.0,Hydro,Kodagu,Karnataka,2009-06-27
+210,63,Sagar Power (Dandela) Pvt. Ltd.,13.0,Hydro,Dakshina Kannada,Karnataka,2009-07-19
+211,64,"International Power Corporation
+Private Limited , (Formerly 2.
+M/s. Prasanna Power Private",6.0,Hydro,Dakshina Kannada,Karnataka,2009-08-13
+212,65,"Rithwk Energy Generation Pvt.
+Ltd.",24.0,Hydro,Dakshina Kannada,Karnataka,2009-09-28
+213,66,"Sagar Power (Neerukatte) Pvt.
+Ltd.",15.0,Hydro,Dakshina Kannada,Karnataka,2009-09-09
+214,67,AMR Power Pvt. Ltd.,24.0,Hydro,Dakshina Kannada,Karnataka,2009-09-12
+215,68,"Soham Phalguni Power Pvt .
+(Formerly Bobba Power Pvt.
+Ltd).",15.0,Hydro,Dakshina Kannada,Karnataka,2009-09-17
+216,69,Atria Brindavan Power Ltd.,4.0,Hydro,Mandya,Karnataka,2009-11-02
+217,70,"Nagarjuna Hydro Energy Pvt.
+Ltd.",15.0,Hydro,Hassan,Karnataka,2010-08-04
+218,71,Jasper Energy Pvt. Ltd.,10.5,Hydro,Vijayapura,Karnataka,2010-08-04
+219,72,Energy Development Co. Ltd.,6.0,Hydro,Kodagu,Karnataka,2010-10-19
+220,73,LK Power Corporation Ltd.,2.0,Hydro,Mandya,Karnataka,2011-01-22
+221,74,Mysore Mercantile co. Ltd.,3.0,Hydro,Hassan,Karnataka,2011-01-22
+222,75,Bonal Hydro Electric company,1.25,Hydro,Kalaburagi,Karnataka,2011-08-12
+223,76,Dishaa Power Corporation Ltd.,4.8,Hydro,Dakshina Kannada,Karnataka,2011-08-12
+224,77,Atria Power Corporation Ltd.,6.0,Hydro,Mandya,Karnataka,2011-10-24
+225,78,"SRM Power (P) Ltd.,",6.0,Hydro,Chikkamagaluru,Karnataka,2011-10-24
+226,79,"A) SouthWest Hydro Power Pvt
+Ltd",2.5,Hydro,Yadgir,Karnataka,2011-11-04
+227,80,"Sugnaneshwara Hydel Power
+Pvt. Ltd.,",13.5,Hydro,Yadgir,Karnataka,2011-12-25
+228,81,Anjaneya Power Tech Pvt. Ltd.,0.8,Hydro,Raichur,Karnataka,1905-07-03
+229,82,Tungabhadra Power Co. Pvt. Ltd.,18.0,Hydro,Ballari,Karnataka,2012-08-30
+230,83,"A) SouthWest Hydro Power Pvt
+Ltd",2.5,Hydro,Yadgir,Karnataka,2012-08-29
+231,84,Sarovar Energy Pvt. Ltd.,1.26,Hydro,Raichur,Karnataka,2012-09-24
+232,85,"Gokak Power and Energy
+Limited (Formerly Gokak
+Textiles Ltd. (Gokak Mills",4.5,Hydro,Belagavi,Karnataka,2012-10-01
+233,86,"Krishna Hydro Energy Ltd.
+(Formerly Jyothi Jalashakthi Pvt
+Ltd.,)",24.75,Hydro,Yadgir,Karnataka,2013-02-05
+234,87,"Bhavana Hydro Electric Private
+Limited",2.0,Hydro,Yadgir,Karnataka,2013-07-30
+235,88,"Lakshmi Jala Vidyuth (Krishna )
+Ltd.",24.75,Hydro,Yadgir,Karnataka,2013-08-14
+236,89,"Khandaleru Power Pvt Ltd, (NCL
+Energy Ltd)",1.4,Hydro,Ballari,Karnataka,2013-08-31
+237,90,Flax Hydro Energy Pvt. Ltd.,1.5,Hydro,Hassan,Karnataka,2013-09-02
+238,91,Sai Nireeha Power Pvt. Ltd.,5.0,Hydro,Hassan,Karnataka,2013-09-05
+239,92,"Soham Renewable Energy India
+Pvt. Ltd.",6.0,Hydro,Mandya,Karnataka,2014-03-28
+240,93,Brindavan Hydro Power Pvt. Ltd.,24.0,Hydro,Shimoga,Karnataka,2014-06-13
+241,94,Vasgi power,0.65,Hydro,Shimoga,Karnataka,2014-06-06
+242,95,"GVP Infra Projects Private
+Limited",15.0,Hydro,Udupi,Karnataka,2014-10-16
+243,96,Rising Sun Power (P) Ltd.,2.0,Hydro,Ramanagara,Karnataka,2014-10-26
+244,97,Saroj Energy Company Pvt. Ltd.,1.5,Hydro,Ramanagara,Karnataka,2015-01-23
+245,98,"Mount Kailash Power Projects
+Pvt. Ltd.",10.5,Hydro,Dakshina Kannada,Karnataka,2015-06-27
+246,99,Devar Power Private Ltd.,3.8,Hydro,Udupi,Karnataka,2015-07-10
+247,100,Kare Power Resources Pvt. Ltd.,24.75,Hydro,Raichur,Karnataka,2015-09-16
+248,101,Kodagu Hydel Projects Pvt. Ltd.,3.0,Hydro,Kodagu,Karnataka,
+249,102,"Perla Hydro Power Private
+Limited",5.0,Hydro,Dakshina Kannada,Karnataka,2016-12-12
+250,103,"GSSMR Energy Power Pvt. Ltd
+Formerly ( GSSMR Power Private
+Limited)",0.5,Hydro,Yadgir,Karnataka,2017-05-31
+251,104,"Perla Hydro Power Private
+Limited",5.0,Hydro,Dakshina Kannada,Karnataka,2017-07-03
+252,105,"International Power Corporation
+Private Limited , (Formerly 2.
+M/s. Prasanna Power Private",3.0,Hydro,Dakshina Kannada,Karnataka,2017-10-04
+253,106,Sai Deepthi Power Pvt. Ltd.,1.5,Hydro,Shimoga,Karnataka,2018-04-05
+254,107,"M/s Maruthi power gen(India)
+pvt ltd",24.0,Hydro,Hassan,Karnataka,2019-05-08
