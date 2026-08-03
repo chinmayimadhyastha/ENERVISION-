@@ -3,12 +3,11 @@ venv/
 __pycache__/
 *.pyc
 
-models/
-*.pkl
-
 .vscode/
 
 .ipynb_checkpoints/
 
 .DS_Store
 Thumbs.db
+
+Plant-wise details of RE Installed Capacity-merged.pdf
