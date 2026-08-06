@@ -8,8 +8,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SAVE_DIR = BASE_DIR / "data" / "generation" / "raw"
 SAVE_DIR.mkdir(parents=True, exist_ok=True)
 
-START = datetime(2025,1,1)
-END   = datetime(2025,7,31)
+START = datetime(2024, 6, 30)
+END = datetime.today()
 
 current = START
 

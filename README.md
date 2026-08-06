@@ -2,173 +2,223 @@
 
 ## AI-Based Renewable Energy Generation Forecasting for Karnataka
 
-EnerVision is a machine learning project that forecasts **plant-wise renewable energy generation** in Karnataka using historical weather data and official power generation records.
+EnerVision is a machine learning project that predicts **plant-wise daily renewable energy generation** in Karnataka using historical weather observations and official renewable energy generation records.
 
-The project integrates **NASA POWER weather data** with **Central Electricity Authority (CEA) plant-wise generation reports** to build a clean machine learning dataset for renewable energy forecasting.
+The project integrates **NASA POWER weather data** with **Central Electricity Authority (CEA) plant-wise renewable energy generation reports** to build a high-quality machine learning dataset for renewable energy forecasting.
 
 ---
 
-# Project Objectives
+# 📌 Project Objectives
 
-- Collect official renewable power generation data
-- Collect historical weather data using NASA POWER API
+- Collect official renewable energy generation reports from CEA
+- Collect historical weather data using the NASA POWER API
+- Extract renewable plant metadata
+- Geocode plant locations
 - Clean and preprocess multiple datasets
 - Merge weather and generation datasets
-- Train a Random Forest regression model
-- Tune model hyperparameters
+- Train and optimize a Random Forest regression model
 - Evaluate model performance
 - Generate prediction reports and visualizations
 
 ---
 
-# Data Sources
+# 📂 Data Sources
 
-### 1. Central Electricity Authority (CEA)
+## 1. Central Electricity Authority (CEA)
 
 - Plant-wise Renewable Energy Generation Reports
 - Karnataka Renewable Plant Metadata
 
-### 2. NASA POWER API
+## 2. NASA POWER API
 
 Historical daily weather parameters:
 
-- Temperature
-- Relative Humidity
-- Wind Speed
+- Temperature (°C)
+- Relative Humidity (%)
+- Wind Speed (m/s)
 - Global Horizontal Irradiance (GHI)
-- Surface Pressure
+- Surface Pressure (kPa)
 
 ---
 
-# Final Dataset
+# 📊 Final Dataset
 
 | Property | Value |
 |----------|------:|
-| Records | 3764 |
-| Missing Values | 0 |
-| Plants | 23 |
+| Duration | 30 Jun 2024 – Latest Available Reports |
+| Records | 14,004 |
+| Renewable Plants | 29 |
 | Weather Features | 5 |
-| Target | Daily Renewable Generation (MU) |
+| Missing Values | 0 |
+| Target Variable | DailyGeneration_MU |
 
 ---
 
-# Features Used
+# 🧠 Features Used
+
+## Weather Features
 
 - Temperature
 - Humidity
 - Wind Speed
-- GHI
-- Pressure
+- Global Horizontal Irradiance (GHI)
+- Surface Pressure
+
+## Plant Features
+
 - Capacity (MW)
 - Plant Type
 - District
+
+## Time Features
+
 - Month
 - Day
-- Day Of Year
+- Day of Year
 
 ---
 
-# Target Variable
+# 🎯 Target Variable
 
-DailyGeneration_MU
+**DailyGeneration_MU**
+
+The target variable represents the **daily electricity generated (in Million Units)** by each renewable energy plant.
 
 ---
 
-# Machine Learning Model
+# 🤖 Machine Learning Model
 
 - Random Forest Regressor
 - GridSearchCV Hyperparameter Tuning
+- Scikit-learn Pipeline
+- One-Hot Encoding
+- Feature Scaling
 
 ---
 
-# Model Performance
+# 📈 Model Performance
 
 | Metric | Value |
-|---------|-------:|
-| MAE | 0.2467 |
-| RMSE | 0.5425 |
-| R² Score | 0.6796 |
+|---------|------:|
+| MAE | 0.2627 |
+| RMSE | 0.4729 |
+| R² Score | 0.7244 |
 
-Best Parameters
+## Best Hyperparameters
 
-- Trees: 200
-- Max Depth: 10
+| Parameter | Value |
+|-----------|------:|
+| Number of Trees | 200 |
+| Maximum Depth | 10 |
 
 ---
 
-# Project Workflow
+# ⚙️ Project Workflow
 
-```
-Plant Metadata
-      │
-      ▼
-Geocoding
-      │
-      ▼
+```text
+CEA Plant Metadata
+        │
+        ▼
+Plant Geocoding
+        │
+        ▼
 NASA POWER API
-      │
-      ▼
+        │
+        ▼
 Weather Dataset
-      │
-      ▼
-CEA Generation Reports
-      │
-      ▼
-Generation Extraction
-      │
-      ▼
-Data Cleaning
-      │
-      ▼
+        │
+        ▼
+CEA Daily Generation Reports
+        │
+        ▼
+PDF Extraction
+        │
+        ▼
+Data Cleaning & Parsing
+        │
+        ▼
 Dataset Merge
-      │
-      ▼
+        │
+        ▼
+Feature Engineering
+        │
+        ▼
 Random Forest Training
-      │
-      ▼
+        │
+        ▼
 Generation Prediction
 ```
 
 ---
 
-# Project Structure
+# 📁 Project Structure
 
 ```text
-EnerVision
+EnerVision/
 │
-├── data
-│   ├── final
-│   ├── generation
-│   ├── metadata
-│   ├── raw
-│   └── weather
+├── data/
+│   ├── final/
+│   │   └── final_training_dataset.csv
+│   │
+│   ├── generation/
+│   │
+│   ├── metadata/
+│   │
+│   └── weather/
 │
-├── models
+├── models/
+│   └── generation_random_forest.pkl
 │
-├── plots
+├── plots/
+│   ├── generation_actual_vs_predicted.png
+│   ├── generation_feature_importance.png
+│   └── generation_residual_plot.png
 │
-├── reports
+├── reports/
+│   ├── generation_metrics.csv
+│   └── generation_feature_importance.csv
 │
-├── scripts
+├── scripts/
 │
 ├── README.md
+│
 └── requirements.txt
 ```
 
 ---
 
-# Generated Outputs
+# 📊 Generated Outputs
 
 - Final Training Dataset
-- Trained Random Forest Model
+- Trained Random Forest Model (.pkl)
 - Feature Importance Report
-- MAE / RMSE / R² Metrics
+- MAE, RMSE and R² Metrics
 - Actual vs Predicted Plot
 - Residual Plot
 
 ---
 
-# Technologies Used
+# 📷 Results
+
+## Actual vs Predicted
+
+![Actual vs Predicted](plots/generation_actual_vs_predicted.png)
+
+---
+
+## Feature Importance
+
+![Feature Importance](plots/generation_feature_importance.png)
+
+---
+
+## Residual Plot
+
+![Residual Plot](plots/generation_residual_plot.png)
+
+---
+
+# 🛠 Technologies Used
 
 - Python
 - Pandas
@@ -181,18 +231,20 @@ EnerVision
 
 ---
 
-# Future Improvements
+# 🚀 Future Improvements
 
-- XGBoost Model
+- XGBoost Regression
+- LightGBM Regression
+- CatBoost Regression
 - LSTM Time-Series Forecasting
 - Real-Time Weather Integration
-- Web Dashboard
-- Live Renewable Generation Prediction
+- Interactive Web Dashboard
+- Live Renewable Energy Generation Prediction
 
 ---
 
-# Developed By
+# 👩‍💻 Developed By
 
-EnerVision Project Team
+**EnerVision Project Team**
 
-Phase-II Major Project
+**Phase-II Major Project**
