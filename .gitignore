@@ -1,13 +1,25 @@
+# Python
 venv/
-
 __pycache__/
 *.pyc
 
+# IDE
 .vscode/
-
 .ipynb_checkpoints/
 
+# OS
 .DS_Store
 Thumbs.db
 
-Plant-wise details of RE Installed Capacity-merged.pdf
+# Large/raw source data
+data/generation/raw/
+data/generation/historical_raw/
+data/weather/weather_raw.csv
+
+# Generated datasets
+data/final/
+data/results/
+
+# Trained models
+models/*.pkl
+!models/random_forest_model.pkl

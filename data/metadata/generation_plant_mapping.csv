@@ -1,0 +1,45 @@
+PlantName,Type,Capacity_MW,MetadataMatch,District,Latitude,Longitude,CommissionDate,MatchStatus
+ACME (KURUKSHETHRA),Solar,50.0,,,,,,Unverified
+ACME (RIWARI),Solar,50.0,,,,,,Unverified
+ADYAH BLOCK 1,Solar,50.0,,,,,,Unverified
+ADYAH BLOCK 10,Solar,50.0,,,,,,Unverified
+ADYAH BLOCK 13,Solar,50.0,,,,,,Unverified
+ADYAH BLOCK 2,Solar,50.0,,,,,,Unverified
+ADYAH BLOCK 3,Solar,150.0,,,,,,Unverified
+ADYAH BLOCK 6,Solar,50.0,,,,,,Unverified
+AVAADA SOLAR,Solar,150.0,,,,,,Unverified
+AVAADA SOLARISE,Solar,150.0,,,,,,Unverified
+AZURE POWER EARTH,Solar,100.0,,,,,,Unverified
+FORTUM FIN SURYA,Solar,100.0,,,,,,Unverified
+FORTUM SOLAR,Solar,250.0,,,,,,Unverified
+KREDL,Solar,100.0,,,,,,Unverified
+PARAMPUJYA,Solar,150.0,,,,,,Unverified
+RENEW TN2,Solar,50.0,,,,,,Unverified
+SBG ENERGY,Solar,200.0,,,,,,Unverified
+TATA RENEWABLES,Solar,250.0,,,,,,Unverified
+YARROW,Solar,50.0,,,,,,Unverified
+KREDL,Solar,50.0,,,,,,Unverified
+SBG ENERGY,Solar,100.0,,,,,,Unverified
+TATA RENEWABLES,Solar,400.0,,,,,,Unverified
+SIMHADRI SOLAR,Solar,25.0,,,,,,Unverified
+ADYAH BLOCK 1,Solar,150.0,,,,,,Unverified
+AMPLUS PAVAGADA,Solar,50.0,,Tumakuru,13.419251,76.881,,Probable
+AMPLUS TUMKUR,Solar,50.0,,Tumakuru,13.419251,76.881,,Probable
+KOPPAL_AYANASIX_W,Wind,50.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_RENEWROSHNI_W,Wind,73.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL SRI1PL,Solar,120.0,,Koppal,15.574824,76.311849,,Probable
+IRCON SOLAR,Solar,50.0,,,,,,Unverified
+GADAG_VENA_S,Solar,31.0,,Gadag,15.416692,75.68158,,Probable
+GADAG_VENA_W,Wind,133.0,,Gadag,15.416692,75.68158,,Probable
+KOPPAL_RENEWOJAS_S,Solar,81.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_KLEIO_S,Solar,105.0,,Koppal,15.574824,76.311849,,Probable
+Koppal Renewojas,Wind,277.0,,Koppal,15.574824,76.311849,,Probable
+GADAG_SERENTICA3_S,Solar,69.0,,Gadag,15.416692,75.68158,,Probable
+PVG_SPRING SOLAR INDIA( 5 * 50 ),Solar,250.0,,,,,,Unverified
+KOPPAL RENEWOJAS Wind,Wind,291.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_KLEIO_W,Wind,101.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_SRI1PL_W,Wind,79.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL SRI1PL,Solar,188.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_AYANASIX_W,Wind,300.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_RENEWROSHNI_W,Wind,291.0,,Koppal,15.574824,76.311849,,Probable
+KOPPAL_TPSAURYA_S,Solar,131.0,,Koppal,15.574824,76.311849,,Probable
