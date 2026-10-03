@@ -24,7 +24,7 @@ MODELS_DIR = BASE_DIR / "models"
 REPORTS_DIR = BASE_DIR / "reports"
 PLOTS_DIR = BASE_DIR / "plots"
 
-# Input feature definition (11 features)
+# Input feature definition (12 features including rolling generation)
 FEATURE_COLS = [
     "Capacity_MW",
     "Temperature",
@@ -36,7 +36,8 @@ FEATURE_COLS = [
     "Month_cos",
     "DayOfYear_sin",
     "DayOfYear_cos",
-    "Lagged_Generation"
+    "Lagged_Generation",
+    "Rolling_Generation_7"
 ]
 TARGET_COL = "DailyGeneration_MU"
 SEQ_LEN = 7
@@ -46,7 +47,7 @@ def load_and_clean_data(file_path: Path):
     """
     Loads raw dataset, cleans invalid weather sentinel values (-999 or <= -900),
     imputes missing weather values per plant structure, clips target generation >= 0,
-    engineers cyclical time features and plant-grouped lagged generation.
+    engineers cyclical time features, plant-grouped lagged generation and 7-day rolling generation.
     """
     print("=" * 80)
     print("1. DATA LOADING AND CLEANING")
@@ -87,17 +88,16 @@ def load_and_clean_data(file_path: Path):
     df["DayOfYear_sin"] = np.sin(2 * np.pi * dayofyear / 365.25)
     df["DayOfYear_cos"] = np.cos(2 * np.pi * dayofyear / 365.25)
 
-    # 4. Lagged Generation (shift 1 strictly per plant)
-    # Explanation: Shift(1) per plant means Lagged_Generation at day t is DailyGeneration_MU at day t-1.
-    # When predicting DailyGeneration_MU at day t+1 using sequence window t-6...t,
-    # the feature Lagged_Generation at day k is generation at day k-1. All feature inputs are strictly
-    # past observations relative to the target at day t+1. Thus, there is NO temporal leakage.
+    # 4. Lagged Generation and 7-Day Rolling Generation (shift 1 strictly per plant to prevent leakage)
     df["Lagged_Generation"] = df.groupby("PlantName")[TARGET_COL].shift(1)
+    df["Rolling_Generation_7"] = df.groupby("PlantName")[TARGET_COL].transform(
+        lambda g: g.shift(1).rolling(7).mean()
+    )
 
-    # Drop the first record of each plant where Lagged_Generation is NaN
+    # Drop initial plant rows where lagged or rolling features are NaN
     init_rows = len(df)
-    df = df.dropna(subset=["Lagged_Generation"]).reset_index(drop=True)
-    print(f"Dropped {init_rows - len(df)} initial plant rows with missing 1-day lag. Processed rows: {len(df)}.")
+    df = df.dropna(subset=["Lagged_Generation", "Rolling_Generation_7"]).reset_index(drop=True)
+    print(f"Dropped {init_rows - len(df)} initial plant rows with missing lag/rolling features. Processed rows: {len(df)}.")
 
     # Duplicate check
     dups = df.duplicated(subset=["PlantName", "Date"]).sum()
@@ -142,20 +142,23 @@ def split_time_based_per_plant(sub_df: pd.DataFrame, val_ratio: float = 0.20):
     return train_df, plant_split_info
 
 
-def fit_scalers(train_df: pd.DataFrame):
+def fit_scalers(train_df: pd.DataFrame, feature_cols: list = None):
     """
     Fits feature scaler and target scaler STRICTLY on the training portion (2020-2025 training data).
     """
+    if feature_cols is None:
+        feature_cols = FEATURE_COLS
+
     feature_scaler = StandardScaler()
     target_scaler = StandardScaler()
 
-    feature_scaler.fit(train_df[FEATURE_COLS])
+    feature_scaler.fit(train_df[feature_cols])
     target_scaler.fit(train_df[[TARGET_COL]])
 
     return feature_scaler, target_scaler
 
 
-def create_sequences(plant_split_info, feature_scaler, target_scaler, seq_len: int = SEQ_LEN):
+def create_sequences(plant_split_info, feature_scaler, target_scaler, feature_cols: list = None, seq_len: int = SEQ_LEN):
     """
     Constructs 7-day sequences (samples, timesteps, features) strictly per plant.
     Transforms features and targets using pre-fitted scalers.
@@ -164,6 +167,9 @@ def create_sequences(plant_split_info, feature_scaler, target_scaler, seq_len: i
     - val_start_idx <= t < test_start_idx -> Validation
     - t >= test_start_idx -> Test
     """
+    if feature_cols is None:
+        feature_cols = FEATURE_COLS
+
     X_tr, y_tr = [], []
     X_v, y_v = [], []
     X_te, y_te = [], []
@@ -171,7 +177,7 @@ def create_sequences(plant_split_info, feature_scaler, target_scaler, seq_len: i
     date_tr, date_v, date_te = [], [], []
 
     for group, val_start_idx, test_start_idx in plant_split_info:
-        X_scaled = feature_scaler.transform(group[FEATURE_COLS])
+        X_scaled = feature_scaler.transform(group[feature_cols])
         y_scaled = target_scaler.transform(group[[TARGET_COL]]).flatten()
         dates = group["Date"].values
 
@@ -208,28 +214,33 @@ def create_sequences(plant_split_info, feature_scaler, target_scaler, seq_len: i
 
 def build_lstm_model(model_type: str, input_shape: tuple):
     """
-    Builds the baseline LSTM architecture per specification:
-    Solar model: Input -> LSTM(64) -> Dropout(0.2) -> Dense(32, activation='relu') -> Dense(1)
+    Builds the optimized LSTM architecture:
+    Solar model: Input -> LSTM(64) -> Dropout(0.3) -> Dense(32, activation='relu') -> Dense(1)
+                 Compiled with Nadam optimizer (lr=0.0001) for highest R^2 performance.
     Wind model:  Input -> LSTM(32) -> Dropout(0.2) -> Dense(16, activation='relu') -> Dense(1)
     """
     model = Sequential()
     if model_type.lower() == "solar":
         model.add(LSTM(64, input_shape=input_shape))
-        model.add(Dropout(0.2))
+        model.add(Dropout(0.3))
         model.add(Dense(32, activation="relu"))
         model.add(Dense(1))
+        model.compile(
+            optimizer=tf.keras.optimizers.Nadam(learning_rate=0.0001),
+            loss="mse"
+        )
     elif model_type.lower() == "wind":
         model.add(LSTM(32, input_shape=input_shape))
         model.add(Dropout(0.2))
         model.add(Dense(16, activation="relu"))
         model.add(Dense(1))
+        model.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+            loss="mse"
+        )
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
-    model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
-        loss="mse"
-    )
     return model
 
 
