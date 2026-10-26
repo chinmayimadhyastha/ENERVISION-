@@ -30,3 +30,6 @@ models/*.pkl
 !models/random_forest_model.pkl
 
 Plant-wise details of RE Installed Capacity-merged.pdf
+
+# Local Python environment
+.venv/
