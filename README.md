@@ -6,6 +6,19 @@ EnerVision is a machine learning project for forecasting **plant-wise daily rene
 
 The project integrates **Central Electricity Authority (CEA) plant-wise renewable energy generation data** with **NASA POWER historical weather data** to construct a plant-weather dataset and train a Random Forest regression model.
 
+> **Reproducibility note (2026):** The preprocessing pipeline is now reproducible on
+> branch `member1-recovery`. See [`PIPELINE.md`](PIPELINE.md) for the exact stages,
+> data-quality policy and known blockers, and
+> [`models/model_manifest.json`](models/model_manifest.json) for the machine-readable
+> contract of the three usable production models (Random Forest, Solar LSTM, Wind LSTM).
+>
+> The canonical dataset contains **29,369 rows / 37 plants** and includes `-999`
+> weather sentinels that are explicitly imputed and recorded. The historical
+> 22,764-row / 25-plant figures and committed metrics later in this README are kept
+> for provenance, but they **cannot be reproduced** from the committed data: the
+> original 25-plant feature dataset and its `_split` column are absent from all
+> branches. All models predict **daily** generation; no hourly model exists.
+
 ---
 
 ## 📌 Project Objectives

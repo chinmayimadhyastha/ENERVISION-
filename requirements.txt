@@ -1,9 +1,25 @@
-pandas
-numpy
-matplotlib
-seaborn
-scikit-learn
-requests
-tqdm
-joblib
-openpyxl
+# ENERVISION - reproducible ML environment
+# Validated with Python 3.12.10 on Windows.
+#
+# Versions are pinned to the versions used to load and validate the committed
+# artifacts in models/.  Do not upgrade blindly: the Random Forest pickle and all
+# four StandardScaler artifacts were produced with scikit-learn 1.6.1, and the
+# production LSTM archives report Keras 3.10.0.
+
+# Core data / ML
+numpy==2.1.3
+pandas==2.2.3
+scikit-learn==1.6.1
+joblib==1.4.2
+
+# Deep learning (required to load models/solar_lstm.keras and models/wind_lstm.keras)
+tensorflow==2.19.0
+keras==3.10.0
+h5py==3.16.0
+
+# Reporting / scripts
+matplotlib==3.9.2
+seaborn==0.13.2
+requests==2.32.3
+tqdm==4.67.1
+openpyxl==3.1.5

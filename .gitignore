@@ -19,6 +19,10 @@ data/weather/weather_raw.csv
 # Generated datasets
 data/final/*
 !data/final/full_generation_weather_dataset.csv
+!data/final/plant_weather_training_dataset.csv
+!data/final/plant_features_dataset.csv
+!data/final/plant_train.csv
+!data/final/plant_test.csv
 data/results/
 
 # Trained models

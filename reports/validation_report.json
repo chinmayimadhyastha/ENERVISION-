@@ -1,0 +1,541 @@
+{
+  "pipeline": {
+    "canonical_dataset": "data/final/full_generation_weather_dataset.csv",
+    "stages": [
+      "scripts/build_plant_weather_training_dataset.py",
+      "scripts/engineer_plant_features.py",
+      "scripts/split_plant_dataset.py"
+    ],
+    "split_rule": "per plant, sort by Date; earliest int(n*0.8) -> train, remainder -> test",
+    "random_split": false
+  },
+  "environment": {
+    "python": "3.12.10",
+    "numpy": "2.1.3",
+    "pandas": "2.2.3",
+    "scikit_learn": "1.6.1",
+    "joblib": "1.4.2",
+    "tensorflow": "2.19.0",
+    "keras": "3.10.0"
+  },
+  "dataset": {
+    "shape": [
+      29110,
+      31
+    ],
+    "plants": 37,
+    "solar_rows": 26370,
+    "wind_rows": 2740,
+    "date_range": [
+      "2020-06-04",
+      "2026-08-05"
+    ],
+    "columns": [
+      "Date",
+      "PlantName",
+      "Type",
+      "Capacity_MW",
+      "District",
+      "Temperature",
+      "Humidity",
+      "WindSpeed",
+      "GHI",
+      "Pressure",
+      "Temperature_lag_1",
+      "Humidity_lag_1",
+      "WindSpeed_lag_1",
+      "GHI_lag_1",
+      "Generation_lag_1",
+      "Generation_lag_2",
+      "Generation_lag_3",
+      "Generation_lag_7",
+      "Generation_roll_3",
+      "Generation_roll_7",
+      "Generation_per_MW",
+      "Year",
+      "Month",
+      "DayOfYear",
+      "DayOfWeek",
+      "Month_sin",
+      "Month_cos",
+      "DayOfYear_sin",
+      "DayOfYear_cos",
+      "DailyGeneration_MU",
+      "_split"
+    ]
+  },
+  "split": {
+    "train_rows": 23268,
+    "test_rows": 5842,
+    "train_ratio": 0.7993129508759876,
+    "plants_with_test": 37,
+    "temporal_violations": [],
+    "train_date_range": [
+      "2020-06-04",
+      "2026-07-16"
+    ],
+    "test_date_range": [
+      "2021-10-21",
+      "2026-08-05"
+    ]
+  },
+  "feature_contracts": {
+    "random_forest": {
+      "count": 25,
+      "order": [
+        "Capacity_MW",
+        "Temperature",
+        "Humidity",
+        "WindSpeed",
+        "GHI",
+        "Pressure",
+        "Temperature_lag_1",
+        "Humidity_lag_1",
+        "WindSpeed_lag_1",
+        "GHI_lag_1",
+        "Generation_lag_1",
+        "Generation_lag_2",
+        "Generation_lag_3",
+        "Generation_lag_7",
+        "Generation_roll_3",
+        "Generation_roll_7",
+        "Generation_per_MW",
+        "Year",
+        "Month",
+        "DayOfYear",
+        "DayOfWeek",
+        "Month_sin",
+        "Month_cos",
+        "DayOfYear_sin",
+        "DayOfYear_cos"
+      ],
+      "source": "scripts/train_random_forest.py"
+    },
+    "lstm": {
+      "count": 12,
+      "order": [
+        "Capacity_MW",
+        "Temperature",
+        "Humidity",
+        "WindSpeed",
+        "GHI",
+        "Pressure",
+        "Month_sin",
+        "Month_cos",
+        "DayOfYear_sin",
+        "DayOfYear_cos",
+        "Lagged_Generation",
+        "Rolling_Generation_7"
+      ],
+      "dataset_column_map": {
+        "Lagged_Generation": "Generation_lag_1",
+        "Rolling_Generation_7": "Generation_roll_7"
+      },
+      "sequence_length": 7,
+      "source": "scripts/train_lstm_model(ABR).py"
+    }
+  },
+  "artifacts": {
+    "random_forest": {
+      "path": "models/random_forest_model.pkl",
+      "loaded": true,
+      "n_features_in": 25,
+      "trees": 300
+    },
+    "solar_lstm": {
+      "path": "models/solar_lstm.keras",
+      "loaded": true,
+      "input_shape": [
+        null,
+        7,
+        12
+      ]
+    },
+    "wind_lstm": {
+      "path": "models/wind_lstm.keras",
+      "loaded": true,
+      "input_shape": [
+        null,
+        7,
+        12
+      ]
+    },
+    "scalers": {
+      "solar_features": {
+        "n_features_in": 12,
+        "type": "StandardScaler"
+      },
+      "solar_target": {
+        "n_features_in": 1,
+        "type": "StandardScaler"
+      },
+      "wind_features": {
+        "n_features_in": 12,
+        "type": "StandardScaler"
+      },
+      "wind_target": {
+        "n_features_in": 1,
+        "type": "StandardScaler"
+      }
+    },
+    "scaler_pairing_verification": {
+      "method": "Compare scaler.mean_/scale_ with the mean/population-std of the code-defined LSTM training split for the matching renewable type.",
+      "solar": {
+        "feature_mean_max_abs_delta": 1.089623183347932e-17,
+        "feature_scale_max_abs_delta": 0.0,
+        "target_mean_abs_delta": 0.0,
+        "target_scale_abs_delta": 0.0
+      },
+      "wind": {
+        "feature_mean_max_abs_delta": 1.3877787807814457e-17,
+        "feature_scale_max_abs_delta": 2.220446049250313e-16,
+        "target_mean_abs_delta": 0.0,
+        "target_scale_abs_delta": 0.0
+      },
+      "tolerance": 0.001,
+      "verified": true
+    }
+  },
+  "inference": {
+    "random_forest": {
+      "rows": 5842,
+      "finite": true,
+      "min": 0.0,
+      "max": 4.516299999999997,
+      "mean": 0.7554501997032977
+    },
+    "solar_lstm": {
+      "sequences": 5290,
+      "input_shape_per_sequence": [
+        7,
+        12
+      ],
+      "finite": true,
+      "min": 0.02410283125936985,
+      "max": 2.7147932052612305,
+      "mean": 0.7142232656478882
+    },
+    "wind_lstm": {
+      "sequences": 552,
+      "input_shape_per_sequence": [
+        7,
+        12
+      ],
+      "finite": true,
+      "min": -0.10550130158662796,
+      "max": 5.325137138366699,
+      "mean": 1.4981317520141602
+    }
+  },
+  "metric_reproduction": {
+    "random_forest": {
+      "split": "regenerated per-plant chronological 80/20 split",
+      "test_rows": 5842,
+      "recomputed": {
+        "MAE": 0.09544728974095627,
+        "RMSE": 0.2889276595257763,
+        "R2": 0.892564042557538
+      },
+      "comparison": {
+        "MAE": {
+          "committed": 0.11163797642553697,
+          "recomputed": 0.09544728974095627,
+          "delta": -0.016190686684580693,
+          "reproduced": false
+        },
+        "RMSE": {
+          "committed": 0.30033888392373304,
+          "recomputed": 0.2889276595257763,
+          "delta": -0.01141122439795672,
+          "reproduced": false
+        },
+        "R2": {
+          "committed": 0.8711579851453006,
+          "recomputed": 0.892564042557538,
+          "delta": 0.021406057412237334,
+          "reproduced": false
+        },
+        "all_reproduced": false
+      },
+      "reproduced": false,
+      "note": "The committed RF metrics were produced from a 22,764-row / 25-plant feature dataset that is not present in any branch or commit. The regenerated dataset has 29,110 rows / 37 plants, so this comparison tests the pipeline, not the historical split."
+    },
+    "lstm": {
+      "Solar": {
+        "test_window": "Date >= 2026-01-01 (code-defined production LSTM test window)",
+        "sequences": 4326,
+        "date_range": [
+          "2026-01-01",
+          "2026-08-05"
+        ],
+        "comparison": {
+          "MAE": {
+            "committed": 0.14415674553172728,
+            "recomputed": 0.14709153651385137,
+            "delta": 0.002934790982124097,
+            "reproduced": false
+          },
+          "RMSE": {
+            "committed": 0.23457871027794697,
+            "recomputed": 0.2378152464267959,
+            "delta": 0.0032365361488489452,
+            "reproduced": false
+          },
+          "R2": {
+            "committed": 0.8668192421925991,
+            "recomputed": 0.8625739032681553,
+            "delta": -0.004245338924443787,
+            "reproduced": false
+          },
+          "all_reproduced": false
+        }
+      },
+      "Wind": {
+        "test_window": "Date >= 2026-01-01 (code-defined production LSTM test window)",
+        "sequences": 1294,
+        "date_range": [
+          "2026-01-01",
+          "2026-08-05"
+        ],
+        "comparison": {
+          "MAE": {
+            "committed": 0.6832080933787058,
+            "recomputed": 0.6577839695940038,
+            "delta": -0.025424123784702046,
+            "reproduced": false
+          },
+          "RMSE": {
+            "committed": 1.0040038958594333,
+            "recomputed": 0.9569040214726288,
+            "delta": -0.04709987438680452,
+            "reproduced": false
+          },
+          "R2": {
+            "committed": 0.4361064856242217,
+            "recomputed": 0.4814565024775248,
+            "delta": 0.04535001685330309,
+            "reproduced": false
+          },
+          "all_reproduced": false
+        }
+      }
+    }
+  },
+  "readme_dataset_comparison": {
+    "expected": {
+      "feature_rows": 22764,
+      "train_rows": 17193,
+      "test_rows": 5571,
+      "plants": 25
+    },
+    "actual": {
+      "feature_rows": 29110,
+      "train_rows": 23268,
+      "test_rows": 5842,
+      "plants": 37
+    },
+    "matches": false
+  },
+  "data_quality_summary": {
+    "canonical_dataset": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\data\\final\\full_generation_weather_dataset.csv",
+    "rows_in": 29369,
+    "plants_in": 37,
+    "policy": {
+      "weather_sentinel_rule": "value <= -900 treated as missing (-999 is the NASA POWER sentinel)",
+      "weather_imputation": "per plant, chronological forward-fill then backward-fill",
+      "negative_generation_rule": "flag and clip DailyGeneration_MU to 0.0 for modelling",
+      "missing_identifier_rule": "drop rows without Date, PlantName, Type, Capacity_MW or target",
+      "invalid_capacity_rule": "drop rows with Capacity_MW <= 0",
+      "duplicate_rule": "drop duplicate (PlantName, Date, Capacity_MW), keep first"
+    },
+    "dropped_missing_identifier_or_target": 0,
+    "dropped_invalid_capacity": 0,
+    "dropped_duplicate_keys": 0,
+    "weather_sentinel_counts_before": {
+      "Temperature": 52,
+      "Humidity": 52,
+      "WindSpeed": 52,
+      "GHI": 104,
+      "Pressure": 52
+    },
+    "weather_sentinel_rows_before": 104,
+    "weather_values_imputed": 312,
+    "dropped_unrecoverable_weather": 0,
+    "negative_generation_rows": 0,
+    "mapping_status_row_counts": {
+      "Unmapped": 22688,
+      "Mapped": 6681
+    },
+    "rows_out": 29369,
+    "plants_out": 37,
+    "output": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\data\\final\\plant_weather_training_dataset.csv",
+    "date_range": {
+      "start": "2020-05-28",
+      "end": "2026-08-05"
+    },
+    "type_row_counts": {
+      "Solar": 26580,
+      "Wind": 2789
+    }
+  },
+  "checks": [
+    {
+      "name": "RF feature list matches specification",
+      "passed": true,
+      "detail": "25 features, exact-order match=True",
+      "structural": true
+    },
+    {
+      "name": "LSTM feature list matches specification",
+      "passed": true,
+      "detail": "12 features, exact-order match=True",
+      "structural": true
+    },
+    {
+      "name": "LSTM sequence length",
+      "passed": true,
+      "detail": "SEQ_LEN=7",
+      "structural": true
+    },
+    {
+      "name": "RF features present in dataset",
+      "passed": true,
+      "detail": "all present",
+      "structural": true
+    },
+    {
+      "name": "LSTM features present in dataset",
+      "passed": true,
+      "detail": "all present",
+      "structural": true
+    },
+    {
+      "name": "Generated dataset shape",
+      "passed": true,
+      "detail": "29110 rows x 31 columns; plants=37",
+      "structural": true
+    },
+    {
+      "name": "_split column exists with train/test values",
+      "passed": true,
+      "detail": "values=['test', 'train']",
+      "structural": true
+    },
+    {
+      "name": "Split row counts match train/test files",
+      "passed": true,
+      "detail": "features train/test=23268/5842, files=23268/5842",
+      "structural": true
+    },
+    {
+      "name": "Per-plant rule is earliest 80% / latest 20%",
+      "passed": true,
+      "detail": "all plants follow int(n*0.8) rule",
+      "structural": true
+    },
+    {
+      "name": "No test row precedes a train row for the same plant",
+      "passed": true,
+      "detail": "0 violations",
+      "structural": true
+    },
+    {
+      "name": "RF feature matrix is exactly 25 columns in order",
+      "passed": true,
+      "detail": "shape=(29110, 25)",
+      "structural": true
+    },
+    {
+      "name": "RF feature matrix contains only finite numbers",
+      "passed": true,
+      "detail": "NaN=0, inf=0",
+      "structural": true
+    },
+    {
+      "name": "Random Forest loads and expects 25 features",
+      "passed": true,
+      "detail": "RandomForestRegressor, n_features_in_=25, trees=300",
+      "structural": true
+    },
+    {
+      "name": "RF artifact feature order matches committed importance report",
+      "passed": true,
+      "detail": "all 25 importances match index-by-index",
+      "structural": true
+    },
+    {
+      "name": "Solar LSTM loads with input shape (7, 12)",
+      "passed": true,
+      "detail": "input_shape=(None, 7, 12)",
+      "structural": true
+    },
+    {
+      "name": "Wind LSTM loads with input shape (7, 12)",
+      "passed": true,
+      "detail": "input_shape=(None, 7, 12)",
+      "structural": true
+    },
+    {
+      "name": "All four scalers load with 12 feature slots / 1 target slot",
+      "passed": true,
+      "detail": "solar_features:12f, solar_target:1f, wind_features:12f, wind_target:1f",
+      "structural": true
+    },
+    {
+      "name": "Scalers match the 12 LSTM features and correct renewable type",
+      "passed": true,
+      "detail": "solar max|dmean|=1.09e-17, max|dscale|=0.00e+00; wind max|dmean|=1.39e-17, max|dscale|=2.22e-16",
+      "structural": true
+    },
+    {
+      "name": "RF inference on test rows is finite",
+      "passed": true,
+      "detail": "n=5842, min=0.0000, max=4.5163, mean=0.7555",
+      "structural": true
+    },
+    {
+      "name": "Solar LSTM inference on test windows is finite",
+      "passed": true,
+      "detail": "n=5290, input=(7, 12), min=0.0241, max=2.7148, mean=0.7142",
+      "structural": true
+    },
+    {
+      "name": "Wind LSTM inference on test windows is finite",
+      "passed": true,
+      "detail": "n=552, input=(7, 12), min=-0.1055, max=5.3251, mean=1.4981",
+      "structural": true
+    },
+    {
+      "name": "RF metrics reproduce committed values",
+      "passed": false,
+      "detail": "recomputed MAE/RMSE/R2=0.095447/0.288928/0.892564; committed=0.111638/0.300339/0.871158",
+      "structural": false
+    },
+    {
+      "name": "Solar LSTM metrics reproduce committed values",
+      "passed": false,
+      "detail": "recomputed MAE/RMSE/R2=0.147092/0.237815/0.862574; committed=0.144157/0.234579/0.866819",
+      "structural": false
+    },
+    {
+      "name": "Wind LSTM metrics reproduce committed values",
+      "passed": false,
+      "detail": "recomputed MAE/RMSE/R2=0.657784/0.956904/0.481457; committed=0.683208/1.004004/0.436106",
+      "structural": false
+    },
+    {
+      "name": "Regenerated dataset matches README 25-plant / 22,764-row claims",
+      "passed": false,
+      "detail": "actual={'feature_rows': 29110, 'train_rows': 23268, 'test_rows': 5842, 'plants': 37} vs expected={'feature_rows': 22764, 'train_rows': 17193, 'test_rows': 5571, 'plants': 25}",
+      "structural": false
+    }
+  ],
+  "structural_status": "pass",
+  "metric_reproduction_status": {
+    "random_forest": "not_reproduced",
+    "lstm": {
+      "Solar": "not_reproduced",
+      "Wind": "not_reproduced"
+    }
+  }
+}
