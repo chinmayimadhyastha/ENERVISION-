@@ -17,7 +17,17 @@ The project integrates **Central Electricity Authority (CEA) plant-wise renewabl
 > 22,764-row / 25-plant figures and committed metrics later in this README are kept
 > for provenance, but they **cannot be reproduced** from the committed data: the
 > original 25-plant feature dataset and its `_split` column are absent from all
-> branches. All models predict **daily** generation; no hourly model exists.
+> branches.
+>
+> **Current forecasting contract:** ENERVISION performs **daily** renewable-energy
+> forecasting only. All models predict `DailyGeneration_MU` in **MU/day** over future
+> **days**. There is no hourly model, and daily forecasts must not be interpolated or
+> converted into hourly forecasts. Any hourly capability would require an hourly
+> dataset and a separately trained hourly model. See
+> [`PIPELINE.md`](PIPELINE.md#current-forecasting-contract).
+>
+> The Random Forest is now a **24-feature leakage-free production candidate**.
+> `Generation_per_MW` was removed because it was derived from the prediction target.
 
 ---
 
@@ -29,7 +39,7 @@ The project integrates **Central Electricity Authority (CEA) plant-wise renewabl
 - Identify plant locations and associated Karnataka districts
 - Clean and preprocess generation and weather datasets
 - Combine generation and weather observations
-- Engineer temporal, lag, rolling and normalized generation features
+- Engineer temporal, lag, rolling and calendar generation features
 - Train a Random Forest regression model
 - Evaluate prediction performance using MAE, RMSE and R²
 - Generate prediction results, feature importance reports and visualizations
@@ -88,10 +98,16 @@ The complete merged dataset is stored as:
 
 ## 🧠 Feature Engineering
 
-The final Random Forest model uses **25 input features**.
+The current production-candidate Random Forest uses **24 leakage-free input features**.
+
+> **Current contract:** the historical 25-feature model included `Generation_per_MW`,
+> which was `DailyGeneration_MU / Capacity_MW` and therefore used the prediction
+> target. It has been removed entirely. The table below is the current contract; the
+> historical 25-feature results are preserved later in this README as provenance only.
 
 ### Weather Features
 
+- Capacity_MW
 - Temperature
 - Humidity
 - WindSpeed
@@ -116,13 +132,9 @@ These represent the previous day's weather conditions.
 - Generation_roll_3
 - Generation_roll_7
 
-These features capture recent generation behaviour.
-
-### Normalized Generation Feature
-
-- Generation_per_MW
-
-This represents generation normalized by installed plant capacity.
+These features capture recent generation behaviour. The rolling features are built
+**per plant** with `shift(1)` before the rolling mean, so they contain only historical
+generation and never the current day's target.
 
 ### Temporal Features
 
@@ -136,6 +148,10 @@ This represents generation normalized by installed plant capacity.
 - DayOfYear_cos
 
 Cyclic encoding is used for month and day-of-year to represent seasonal patterns.
+
+The exact 24-feature order is frozen in `scripts/train_random_forest.py` and enforced
+by `scripts/validate_pipeline.py`. `Generation_per_MW` is absent and must not be added
+back.
 
 ---
 
@@ -174,16 +190,19 @@ No GridSearchCV, feature scaling or one-hot encoding is used in the current Rand
 
 ## 📚 Training and Testing Dataset
 
-The final engineered dataset contains observations from **25 plants common to both the training and testing partitions**.
+### Current reproducible dataset
+
+The regenerated pipeline dataset is authoritative for the current models:
 
 | Property | Value |
 |----------|------:|
-| Feature dataset rows | 22,764 |
-| Training rows | 17,193 |
-| Testing rows | 5,571 |
-| Plants | 25 |
-| Input features | 25 |
+| Feature dataset rows | 29,110 |
+| Training rows | 23,268 |
+| Testing rows | 5,842 |
+| Plants | 37 |
+| Input features (RF) | 24 |
 | Target | DailyGeneration_MU |
+| Split | per-plant chronological 80/20, no shuffling |
 
 The datasets are stored as:
 
@@ -191,11 +210,44 @@ The datasets are stored as:
 - `data/final/plant_test.csv`
 - `data/final/plant_features_dataset.csv`
 
+### Historical README figures (provenance only)
+
+Earlier versions of this README reported **25 plants**, 22,764 feature rows, 17,193
+training rows, 5,571 testing rows and 25 RF features. The original 25-plant dataset and
+its `_split` are absent from every branch and commit, so those figures are **not
+reproduced** and are not comparable to the current 37-plant / 24-feature model. They
+are retained here only as historical provenance.
+
+| Historical property | Value (not reproduced) |
+|----------|------:|
+| Feature dataset rows | 22,764 |
+| Training rows | 17,193 |
+| Testing rows | 5,571 |
+| Plants | 25 |
+| Input features | 25 (included the leaked `Generation_per_MW`) |
+| Target | DailyGeneration_MU |
+
 ---
 
 ## 📈 Random Forest Performance
 
-The current Random Forest model achieved:
+### Current leakage-free model (24 features)
+
+| Metric | Value |
+|---------|------:|
+| MAE | 0.132150 |
+| RMSE | 0.282788 |
+| R² | 0.897082 |
+
+Training rows: 23,268. Test rows: 5,842. Plants: 37. Features: 24.
+Test predictions: min 0.0, max 5.3188, mean 0.7859, 0 negative values, all finite.
+
+These metrics are saved in `reports/generation_metrics_leakage_free.csv`. They are
+reproduced by `scripts/validate_pipeline.py`.
+
+### Historical 25-feature model (provenance only)
+
+The earlier model, which included the leaked `Generation_per_MW`, reported:
 
 | Metric | Value |
 |---------|------:|
@@ -203,15 +255,37 @@ The current Random Forest model achieved:
 | RMSE | 0.300339 |
 | R² | 0.871158 |
 
-### Interpretation
-
-The model achieved an **R² of approximately 0.871**, indicating that the model explains a substantial proportion of the variation in daily plant-level renewable energy generation within the test dataset.
+These historical values remain in `reports/generation_metrics.csv` for provenance.
+They are **not reproduced** and **not comparable** to the current 24-feature model
+because the feature contract changed and the original 25-plant dataset is absent.
 
 ---
 
 ## 🔝 Top Feature Importance
 
-The most influential features in the current Random Forest model are:
+### Current 24-feature model
+
+| Rank | Feature | Importance |
+|-----:|---------|-----------:|
+| 1 | Generation_lag_1 | 0.199626 |
+| 2 | Generation_roll_3 | 0.152000 |
+| 3 | Generation_roll_7 | 0.147804 |
+| 4 | Generation_lag_2 | 0.116243 |
+| 5 | Generation_lag_3 | 0.081987 |
+| 6 | Generation_lag_7 | 0.071917 |
+| 7 | Capacity_MW | 0.046965 |
+| 8 | WindSpeed | 0.020678 |
+| 9 | GHI | 0.018563 |
+| 10 | Temperature_lag_1 | 0.016444 |
+
+Full report: `reports/generation_feature_importance.csv` (24 features, sum ≈ 1).
+Recent generation history and the shifted rolling means remain the strongest
+predictors. `Generation_per_MW` is no longer part of the model.
+
+### Historical 25-feature model (provenance only)
+
+The earlier importance report, archived at
+`reports/generation_feature_importance_historical_25f.csv`, listed:
 
 | Rank | Feature | Importance |
 |-----:|---------|-----------:|
@@ -226,7 +300,8 @@ The most influential features in the current Random Forest model are:
 | 9 | WindSpeed | 0.012179 |
 | 10 | GHI | 0.011228 |
 
-The results indicate that **recent generation history and normalized generation behaviour are particularly important predictors** for the current model.
+These historical importances are **not directly comparable** to the current model
+because `Generation_per_MW` was removed and the feature contract changed.
 
 ---
 
@@ -357,7 +432,9 @@ The Random Forest training script automatically generates or updates the followi
 
 ### Evaluation Metrics
 
-`reports/generation_metrics.csv`
+- `reports/generation_metrics_leakage_free.csv` (current 24-feature model)
+- `reports/rf_training_summary.json` (current training details)
+- `reports/generation_metrics.csv` (historical 25-feature model; never overwritten)
 
 ### Visualizations
 

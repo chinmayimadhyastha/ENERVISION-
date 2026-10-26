@@ -2,6 +2,9 @@
 
 ## Plant-Weather Feature Dataset
 
+> `Generation_per_MW` was removed from this dataset because it is
+> `DailyGeneration_MU / Capacity_MW` and therefore leaked the prediction target.
+
 | Column | Type | Description |
 |---------|------|-------------|
 | Date | Date | Observation date |
@@ -24,7 +27,6 @@
 | Generation_lag_7 | Float | Energy generation seven days earlier (MU) |
 | Generation_roll_3 | Float | Three-day rolling mean of previous generation (MU) |
 | Generation_roll_7 | Float | Seven-day rolling mean of previous generation (MU) |
-| Generation_per_MW | Float | Energy generation normalized by installed capacity (MU/MW) |
 | Year | Integer | Year of observation |
 | Month | Integer | Month of observation |
 | DayOfYear | Integer | Day number within the year |

@@ -1,18 +1,35 @@
 {
-  "manifest_version": "1.0",
+  "manifest_version": "1.1",
   "project": "ENERVISION",
   "source": {
     "repository": "https://github.com/chinmayimadhyastha/ENERVISION-",
     "branch": "member1-recovery",
     "commit": "af553ff16f8f6edc2ec8f61fb12a8523628cd0c1",
     "commit_date": "2026-10-03T20:18:54+05:30",
-    "role": "Authoritative ML branch; models below were produced from this branch."
+    "role": "Authoritative ML branch. The LSTM artifacts were produced from this commit.",
+    "rf_retrain_base_commit": "991b80d",
+    "rf_retrain_note": "The leakage-free 24-feature Random Forest was retrained on the reproducible pipeline output on top of 991b80d. The historical leaked 25-feature artifact remains recoverable at commit 991b80d."
+  },
+  "forecasting_contract": {
+    "platform_scope": "Daily renewable-energy forecasting",
+    "frequency": "daily",
+    "target": "DailyGeneration_MU",
+    "unit": "MU/day",
+    "horizon": "future days",
+    "hourly_forecasting": false,
+    "hourly_note": "No hourly model or hourly training dataset exists. Daily forecasts must not be interpolated, divided, or relabelled into hourly forecasts.",
+    "plant_level": "Plant-level forecasting where the plant has generation history sufficient to build lag/rolling features.",
+    "models": [
+      "random_forest_daily",
+      "solar_lstm_daily",
+      "wind_lstm_daily"
+    ]
   },
   "target": {
     "name": "DailyGeneration_MU",
     "frequency": "daily",
     "unit": "MU",
-    "description": "Next-day / same-date daily generation for a single plant. There is no hourly model in this repository."
+    "description": "Daily generation for a single plant over one day. There is no hourly model in this repository."
   },
   "canonical_dataset": {
     "path": "data/final/full_generation_weather_dataset.csv",
@@ -45,13 +62,14 @@
     ],
     "leakage_rules": [
       "All generation lags are computed per plant with shift(lag).",
-      "Generation_roll_3 and Generation_roll_7 are computed per plant as shift(1) followed by a 3/7-row rolling mean.",
-      "Weather lags are computed per plant with shift(1)."
+      "Generation_roll_3 and Generation_roll_7 are computed per plant as shift(1) followed by a 3/7-row rolling mean, so the current day's target never enters its own feature.",
+      "Weather lags are computed per plant with shift(1).",
+      "Generation_per_MW was removed because it was derived from the current-day target."
     ],
     "split_definition": "For each plant, sort rows by Date. The earliest int(n * 0.80) rows are train; the remaining rows are test. No shuffling and no random seed.",
     "regenerated_shape": {
       "rows": 29110,
-      "columns": 31,
+      "columns": 30,
       "plants": 37,
       "train_rows": 23268,
       "test_rows": 5842
@@ -59,8 +77,12 @@
   },
   "feature_contracts": {
     "random_forest": {
-      "count": 25,
+      "count": 24,
       "source": "scripts/train_random_forest.py",
+      "status": "leakage_free",
+      "removed_features": {
+        "Generation_per_MW": "Removed because it is DailyGeneration_MU / Capacity_MW and therefore used the prediction target."
+      },
       "order": [
         "Capacity_MW",
         "Temperature",
@@ -78,7 +100,6 @@
         "Generation_lag_7",
         "Generation_roll_3",
         "Generation_roll_7",
-        "Generation_per_MW",
         "Year",
         "Month",
         "DayOfYear",
@@ -116,16 +137,18 @@
   "models": [
     {
       "id": "random_forest_daily",
-      "display_name": "Random Forest (daily, solar + wind)",
+      "display_name": "Random Forest (daily, leakage-free, solar + wind)",
       "model_type": "RandomForestRegressor",
       "renewable_type": "solar+wind (single model)",
+      "status": "production_candidate",
+      "frequency": "daily",
+      "target": "DailyGeneration_MU",
       "artifact_path": "models/random_forest_model.pkl",
       "artifact_format": "pickle",
-      "artifact_size_bytes": 376564782,
-      "artifact_sha256": "43e349ad8abcad4d8614935379462a072c6df801f224cb2b1a73af8864c7d1e6",
+      "artifact_size_bytes": 554842792,
+      "artifact_sha256": "94f330e9906bf5b81b478b3d8a3a6a62a25b9c0f89ffa7b80672258f51dc464c",
       "loadable": true,
-      "target": "DailyGeneration_MU",
-      "feature_count": 25,
+      "feature_count": 24,
       "feature_order": [
         "Capacity_MW",
         "Temperature",
@@ -143,7 +166,6 @@
         "Generation_lag_7",
         "Generation_roll_3",
         "Generation_roll_7",
-        "Generation_per_MW",
         "Year",
         "Month",
         "DayOfYear",
@@ -156,32 +178,65 @@
       "sequence_length": null,
       "scaler_feature_path": null,
       "scaler_target_path": null,
-      "preprocessing_required": "Build the 25 columns exactly as in scripts/engineer_plant_features.py. No feature scaling is applied for the RF.",
+      "scaler": "none",
+      "preprocessing_required": "Build the 24 columns exactly as in scripts/engineer_plant_features.py. No feature scaling is applied for the RF. Generation_per_MW must not be added back.",
       "inference_contract": {
-        "input_shape": [25],
+        "input_shape": [24],
         "output_shape": [1],
         "output": "DailyGeneration_MU",
-        "requires": "One row per plant/date with daily weather and plant-wise lag/rolling features."
+        "frequency": "daily",
+        "unit": "MU/day",
+        "does_not_require": "DailyGeneration_MU for the day being predicted.",
+        "requires": "One row per plant/date with capacity, weather for the target date (observed or forecast), weather lags, historical generation lags/rolling means, and calendar features.",
+        "horizon": "future days"
       },
       "training_date_range": {
-        "start": null,
-        "end": null,
-        "note": "Not recorded in the committed artifact. The original 25-plant feature dataset and its _split column are not present in any branch or commit."
+        "start": "2020-06-04",
+        "end": "2026-07-16",
+        "note": "Global min/max of the regenerated train split; per-plant ranges differ."
       },
-      "train_test_split": "Per plant, chronological: earliest 80% train / latest 20% test. Committed README reports 17,193 train / 5,571 test rows and 25 plants; that exact dataset is unavailable.",
-      "evaluation_metrics": {
-        "MAE": 0.11163797642553697,
-        "RMSE": 0.30033888392373304,
-        "R2": 0.8711579851453006,
-        "source": "reports/generation_metrics.csv",
-        "status": "committed actual metric"
+      "test_date_range": {
+        "start": "2021-10-21",
+        "end": "2026-08-05",
+        "note": "Global min/max of the regenerated test split; per-plant chronological ordering is enforced."
       },
-      "regenerated_pipeline_metrics": {
-        "MAE": 0.09544728974095627,
-        "RMSE": 0.28892765952577637,
-        "R2": 0.8925640425575379,
-        "split": "regenerated per-plant chronological 80/20 split (23,268 train / 5,842 test, 37 plants)",
-        "status": "recomputed on the regenerated dataset; not a reproduction of the committed metric"
+      "train_test_split": "Per plant, chronological: earliest 80% train / latest 20% test. Regenerated split: 23,268 train / 5,842 test rows across 37 plants.",
+      "metrics": {
+        "historical_committed_metrics_25f": {
+          "MAE": 0.11163797642553697,
+          "RMSE": 0.30033888392373304,
+          "R2": 0.8711579851453006,
+          "source": "reports/generation_metrics.csv",
+          "status": "historical actual metric from the removed 25-feature leaked contract",
+          "comparable_to_current_model": false,
+          "note": "Preserved for provenance only. The original 22,764-row / 25-plant dataset and _split are absent, so these values are not reproduced."
+        },
+        "leakage_free_metrics_24f": {
+          "MAE": 0.132150218240383,
+          "RMSE": 0.28278781980879913,
+          "R2": 0.8970816491056874,
+          "source": "reports/generation_metrics_leakage_free.csv",
+          "status": "current production-candidate metric",
+          "train_rows": 23268,
+          "test_rows": 5842,
+          "plants": 37,
+          "features": 24
+        }
+      },
+      "prediction_stats": {
+        "min": 0.0,
+        "max": 5.3188,
+        "mean": 0.7859,
+        "negative_count": 0,
+        "finite": true,
+        "rows": 5842
+      },
+      "feature_importance": {
+        "path": "reports/generation_feature_importance.csv",
+        "historical_path": "reports/generation_feature_importance_historical_25f.csv",
+        "method": "Random Forest impurity importance",
+        "count": 24,
+        "sum": 0.9999999999999987
       },
       "framework": {
         "library": "scikit-learn",
@@ -200,14 +255,15 @@
       "source_training_script": "scripts/train_random_forest.py",
       "source_branch": "member1-recovery",
       "source_commit": "af553ff16f8f6edc2ec8f61fb12a8523628cd0c1",
-      "serving_safe": false,
-      "serving_blockers": [
-        "Generation_per_MW = DailyGeneration_MU / Capacity_MW uses the current day's target. It cannot be computed before the generation being predicted is known. The feature is preserved because the committed artifact was trained with it; changing it would invalidate the model."
-      ],
+      "serving_safe": true,
+      "serving_blockers": [],
       "notes": [
         "Single model across both solar and wind; Type is not a feature.",
-        "Feature order was independently proven against reports/generation_feature_importance.csv: all 25 importances match index-by-index.",
-        "Committed metrics are actual, but the original split/dataset is missing, so the committed metric is not reproduced by the regenerated pipeline."
+        "Generation_per_MW removed because it leaked the prediction target.",
+        "Generation_roll_3 and Generation_roll_7 use shift(1) before rolling and therefore contain only historical generation.",
+        "A prediction can be generated without supplying DailyGeneration_MU for the forecast day.",
+        "Weather for the target day is still required; it must come from an observed or forecast weather source.",
+        "Historical leaked 25-feature artifact remains recoverable at commit 991b80d."
       ]
     },
     {
@@ -215,6 +271,8 @@
       "display_name": "Solar LSTM (daily)",
       "model_type": "Keras Sequential LSTM",
       "renewable_type": "solar",
+      "status": "production",
+      "frequency": "daily",
       "artifact_path": "models/solar_lstm.keras",
       "artifact_format": "keras_zip",
       "artifact_size_bytes": 293310,
@@ -256,7 +314,10 @@
         "input_shape": [7, 12],
         "output_shape": [1],
         "output": "DailyGeneration_MU",
-        "requires": "7 consecutive daily feature rows per plant; requires weather for the target date (observed or forecast)."
+        "frequency": "daily",
+        "unit": "MU/day",
+        "requires": "7 consecutive daily feature rows per plant; requires weather for the target date (observed or forecast).",
+        "horizon": "future days"
       },
       "training_date_range": {
         "start": "2020-05-28",
@@ -274,7 +335,7 @@
         "RMSE": 0.23457871027794697,
         "R2": 0.8668192421925991,
         "source": "reports/lstm_metrics.csv",
-        "status": "committed actual metric"
+        "status": "committed actual metric, not reproduced"
       },
       "regenerated_pipeline_metrics": {
         "MAE": 0.14709153651385137,
@@ -313,7 +374,8 @@
       "serving_blockers": [],
       "notes": [
         "Production 12-feature solar model. The 11-feature solar_lstm_best*.keras files are excluded.",
-        "Scalers were proven to be the exact fit statistics of this model's 12 features on the solar training split."
+        "Scalers were proven to be the exact fit statistics of this model's 12 features on the solar training split.",
+        "Not retrained in this task; validated unchanged."
       ]
     },
     {
@@ -321,6 +383,8 @@
       "display_name": "Wind LSTM (daily)",
       "model_type": "Keras Sequential LSTM",
       "renewable_type": "wind",
+      "status": "production",
+      "frequency": "daily",
       "artifact_path": "models/wind_lstm.keras",
       "artifact_format": "keras_zip",
       "artifact_size_bytes": 106820,
@@ -362,7 +426,10 @@
         "input_shape": [7, 12],
         "output_shape": [1],
         "output": "DailyGeneration_MU",
-        "requires": "7 consecutive daily feature rows per plant; requires weather for the target date (observed or forecast)."
+        "frequency": "daily",
+        "unit": "MU/day",
+        "requires": "7 consecutive daily feature rows per plant; requires weather for the target date (observed or forecast).",
+        "horizon": "future days"
       },
       "training_date_range": {
         "start": "2020-05-28",
@@ -380,7 +447,7 @@
         "RMSE": 1.0040038958594333,
         "R2": 0.4361064856242217,
         "source": "reports/lstm_metrics.csv",
-        "status": "committed actual metric"
+        "status": "committed actual metric, not reproduced"
       },
       "regenerated_pipeline_metrics": {
         "MAE": 0.6577839695940038,
@@ -419,7 +486,8 @@
       "serving_blockers": [],
       "notes": [
         "Production 12-feature wind model.",
-        "Scalers were proven to be the exact fit statistics of this model's 12 features on the wind training split."
+        "Scalers were proven to be the exact fit statistics of this model's 12 features on the wind training split.",
+        "Not retrained in this task; validated unchanged."
       ]
     }
   ],
@@ -431,6 +499,10 @@
     {
       "path": "models/solar_lstm_best_window.keras",
       "reason": "Requires an 11-feature input. No matching 11-feature scaler is committed. Not a production model."
+    },
+    {
+      "path": "models/random_forest_model.pkl @ commit 991b80d",
+      "reason": "Historical 25-feature Random Forest. Included Generation_per_MW, which used the current-day target. Superseded by the leakage-free 24-feature artifact."
     }
   ],
   "not_trained_models": [
@@ -461,19 +533,23 @@
     }
   ],
   "evaluation_artifacts": {
-    "random_forest_metrics": "reports/generation_metrics.csv",
+    "random_forest_metrics_historical_25f": "reports/generation_metrics.csv",
+    "random_forest_metrics_leakage_free_24f": "reports/generation_metrics_leakage_free.csv",
+    "random_forest_training_summary": "reports/rf_training_summary.json",
     "lstm_metrics": "reports/lstm_metrics.csv",
-    "feature_importance": "reports/generation_feature_importance.csv",
+    "feature_importance_current_24f": "reports/generation_feature_importance.csv",
+    "feature_importance_historical_25f": "reports/generation_feature_importance_historical_25f.csv",
     "feature_importance_method": "Random Forest impurity importance only",
     "shap": "Not present anywhere in the repository",
     "validation_report": "reports/validation_report.json"
   },
   "known_limitations": [
-    "The committed Random Forest metrics cannot be reproduced because data/final/plant_features_dataset.csv, the exact 25-plant subset and the original _split column are absent from all branches and commits.",
-    "The committed LSTM metrics also differ slightly when recomputed on regenerated features; they are reported as committed actuals, not as reproduced values.",
-    "The README's 25-plant / 22,764-row dataset statement does not match the canonical 37-plant / 29,369-row dataset; no committed rule reconstructs the 25-plant subset.",
-    "The Random Forest uses Generation_per_MW derived from the current-day target and is therefore not safe to serve without retraining or a feature-contract change.",
-    "All models predict daily generation. There is no hourly model and no conversion to hourly output.",
+    "The historical 25-feature Random Forest metrics cannot be reproduced and are not comparable to the current leakage-free model. The original 22,764-row / 25-plant dataset and its _split are absent.",
+    "The committed LSTM metrics differ slightly when recomputed on regenerated features; they are reported as committed actuals, not as reproduced values.",
+    "The README's historical 25-plant / 22,764-row figures do not match the canonical 37-plant / 29,369-row dataset; no committed rule reconstructs the 25-plant subset.",
+    "The Random Forest requires weather for the forecast day from an observed or forecast weather source; it does not require DailyGeneration_MU for that day.",
+    "The Random Forest is a production candidate until backend integration review is complete.",
+    "All models predict daily generation. There is no hourly model and daily output must not be converted to hourly output.",
     "No backend or API exists in the repository."
   ]
 }

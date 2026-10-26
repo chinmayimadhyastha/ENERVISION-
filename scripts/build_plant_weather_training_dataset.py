@@ -30,8 +30,8 @@ QUALITY POLICY (explicit, documented, never silent)
    Rows without Date, PlantName, Type, Capacity_MW or DailyGeneration_MU cannot be
    modelled and are dropped with a count recorded in the summary.
 4. Invalid capacity
-   ``Capacity_MW <= 0`` cannot support ``Generation_per_MW`` and is dropped with a
-   count recorded in the summary.
+   ``Capacity_MW <= 0`` cannot support plant-level generation modelling and is dropped
+   with a count recorded in the summary.
 5. Duplicate keys
    Duplicate (PlantName, Date, Capacity_MW) rows are removed (first occurrence kept)
    and the count is recorded.

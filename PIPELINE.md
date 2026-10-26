@@ -5,6 +5,26 @@ This document describes the reproducible preprocessing pipeline for the
 It is intentionally limited to **daily plant-wise generation forecasting**. There is
 no hourly model in this repository.
 
+## Current Forecasting Contract
+
+ENERVISION currently performs **DAILY renewable-generation forecasting**.
+
+- Target variable: `DailyGeneration_MU`.
+- Frequency: **daily**.
+- Unit: **MU/day**.
+- Forecasts represent **energy generation over one day**, per plant.
+- Forecast horizon is **future days**, not future hours.
+- The current models do **not** produce hourly forecasts.
+- The system must **not** convert daily forecasts into hourly forecasts by
+  interpolation, division, synthetic timestamps, or relabelling.
+- There are no `+3H` / `+6H` / `+12H` / `+24H` predictions.
+- Any future hourly forecasting capability requires an **hourly dataset** and a
+  **separately trained hourly forecasting model**. Neither exists in this repository.
+
+This contract is enforced by `scripts/validate_pipeline.py`, which checks the manifest
+target/frequency, rejects hourly model artifacts, and scans the pipeline scripts for
+hourly forecasting code.
+
 ## Quick start
 
 From the repository root, with Python 3.12:
@@ -12,8 +32,14 @@ From the repository root, with Python 3.12:
 ```bash
 python -m pip install -r requirements.txt
 python scripts/run_preprocessing_pipeline.py
+python scripts/train_random_forest.py
 python scripts/validate_pipeline.py
 ```
+
+`train_random_forest.py` writes the leakage-free 24-feature RF artifact and its own
+metric/importance reports. `validate_pipeline.py` verifies the dataset contract, the
+leakage proof, the artifact, all four scalers, the daily forecasting contract and
+metric consistency.
 
 The pipeline is deterministic and has no random split. Running it twice on the same
 input produces byte-identical CSV ordering and values (pandas float formatting is
@@ -54,7 +80,7 @@ dataset and records every quality action.
 Canonical result: 29,369 rows in, 29,369 rows out, 37 plants, 312 weather values
 imputed across 104 rows, 0 negatives.
 
-## Stage 2 - engineer the 25 Random Forest features
+## Stage 2 - engineer the 24 leakage-free Random Forest features
 
 `scripts/engineer_plant_features.py`
 
@@ -70,18 +96,24 @@ Leakage rules:
 
 - Generation lags 1/2/3/7 are computed **per plant** with `shift(lag)`.
 - `Generation_roll_3` and `Generation_roll_7` are computed **per plant** as
-  `shift(1)` followed by a 3/7-row rolling mean. The shift happens before the roll.
+  `shift(1)` followed by a 3/7-row rolling mean. The shift happens **before** the
+  roll, so the current day's target never enters its own feature.
 - Weather lags are computed **per plant** with `shift(1)`.
 - Rows without a complete feature vector or target are dropped.
 
-The exact 25-feature order is the order in `scripts/train_random_forest.py` and is
-verified by `scripts/validate_pipeline.py` against an independent literal copy.
+`Generation_per_MW = DailyGeneration_MU / Capacity_MW` was **removed from the
+dataset and the RF contract** because it was derived from the current-day target and
+therefore leaked the value being predicted. It is not generated, renamed, or
+reconstructed at inference time.
 
-> **Serving caveat (preserved contract):** `Generation_per_MW` is defined as
-> `DailyGeneration_MU / Capacity_MW`. It uses the current day's target and therefore
-> cannot be computed before the day's generation is known. It is retained because the
-> committed Random Forest was trained with it and changing it would invalidate the
-> artifact. It is recorded as a serving blocker in `models/model_manifest.json`.
+The exact 24-feature order is the order in `scripts/train_random_forest.py` and is
+verified by `scripts/validate_pipeline.py` against an independent literal copy and
+against `models/model_manifest.json`.
+
+The validator also empirically reconstructs every generation lag/rolling feature and
+every weather lag from historical targets/weather using the shift-before-roll rule and
+compares them with the stored columns. The checked rows match to floating-point
+tolerance, which proves the stored features contain only historical information.
 
 Result: 29,110 rows, 37 plants (26,370 solar / 2,740 wind), date range
 2020-06-04 to 2026-08-05.
@@ -109,18 +141,24 @@ violations.
 
 ## Feature contracts
 
-### Random Forest - 25 features
+### Random Forest - 24 leakage-free features
 
 ```
 Capacity_MW, Temperature, Humidity, WindSpeed, GHI, Pressure,
 Temperature_lag_1, Humidity_lag_1, WindSpeed_lag_1, GHI_lag_1,
 Generation_lag_1, Generation_lag_2, Generation_lag_3, Generation_lag_7,
-Generation_roll_3, Generation_roll_7, Generation_per_MW,
+Generation_roll_3, Generation_roll_7,
 Year, Month, DayOfYear, DayOfWeek,
 Month_sin, Month_cos, DayOfYear_sin, DayOfYear_cos
 ```
 
-Target: `DailyGeneration_MU`. No scaling is applied.
+Target: `DailyGeneration_MU` (daily, MU/day). Status: `production_candidate`.
+No scaler is applied. The model does **not** require `DailyGeneration_MU` for the day
+being predicted. It does require weather for the target day, which may be observed or
+forecast weather.
+
+`Generation_per_MW` is **absent** from this contract because it leaked the prediction
+target.
 
 ### Solar / Wind LSTM - 12 features, sequence length 7
 
@@ -154,53 +192,70 @@ MLP and SVM are explicitly listed as not trained.
 
 `scripts/validate_pipeline.py` writes `reports/validation_report.json`.
 
-Structural checks: **25/25 pass**, including:
+Structural checks: **37/37 pass**, including:
 
 - dataset shape and `_split` counts;
 - per-plant earliest-80 / latest-20 rule with 0 temporal violations;
-- RF matrix exactly 25 columns in the committed order;
+- RF matrix exactly 24 columns in the frozen leakage-free order;
+- `Generation_per_MW` absent from both the dataset and the RF contract;
+- generation lag/rolling and weather-lag features empirically reconstructed from
+  historical-only inputs (checked rows match to ~1e-15, 0 violations);
 - RF artifact feature order proven index-by-index against
-  `reports/generation_feature_importance.csv`;
+  `reports/generation_feature_importance.csv`, which must contain 24 features summing
+  to 1;
+- RF artifact SHA-256 and size match the manifest;
 - both LSTMs load with input `(7, 12)`;
 - all four scalers load with 12 feature slots / 1 target slot;
 - scaler statistics match the code-defined LSTM training split to floating-point
-  precision (max mean delta ~1e-17, max scale delta ~2e-16), proving the correct
+  precision (max mean delta ~1e-17, max scale delta ~1e-16), proving the correct
   feature order and renewable type;
-- inference is finite for RF, Solar LSTM and Wind LSTM.
+- inference is finite for RF, Solar LSTM and Wind LSTM;
+- the saved leakage-free RF metrics match an independent recomputation;
+- the manifest enforces a daily target/frequency and no hourly model artifact or
+  hourly forecasting code exists.
 
 ### Metric reproducibility
 
-The committed metrics are real committed results, but they are **not reproduced** by
-the regenerated pipeline:
+The current RF metrics are reproduced by the validator. Historical committed metrics
+are kept for provenance but are **not** claimed as reproduced.
 
-| Model | Committed MAE / RMSE / R² | Recomputed on regenerated split | Reproduced |
+| Model | Committed / historical metrics (MAE / RMSE / R²) | Current recomputation | Status |
 |---|---|---|---|
-| Random Forest | 0.111638 / 0.300339 / 0.871158 | 0.095447 / 0.288928 / 0.892564 | No |
-| Solar LSTM | 0.144157 / 0.234579 / 0.866819 | 0.147092 / 0.237815 / 0.862574 | No |
-| Wind LSTM | 0.683208 / 1.004004 / 0.436106 | 0.657784 / 0.956904 / 0.481457 | No |
+| Random Forest (historical 25-feature, leaked) | 0.111638 / 0.300339 / 0.871158 | — | Historical only; feature contract changed, not comparable |
+| Random Forest (current 24-feature, leakage-free) | — | 0.132150 / 0.282788 / 0.897082 | Saved report matches recomputation |
+| Solar LSTM | 0.144157 / 0.234579 / 0.866819 | 0.147092 / 0.237815 / 0.862574 | Not reproduced |
+| Wind LSTM | 0.683208 / 1.004004 / 0.436106 | 0.657784 / 0.956904 / 0.481457 | Not reproduced |
 
-Random Forest: the committed run used a 22,764-row / 25-plant feature dataset and an
-original `_split` column that are absent from every branch and commit. The regenerated
-dataset has 29,110 rows / 37 plants, so the numbers are not comparable.
+Random Forest: the historical 25-feature run used a 22,764-row / 25-plant feature
+dataset and an original `_split` column that are absent from every branch and commit.
+The new leakage-free model was trained on the regenerated 29,110-row / 37-plant
+dataset with 23,268 train / 5,842 test rows. The historical and new metrics are
+therefore different models and are not comparable. The historical metrics remain at
+`reports/generation_metrics.csv`; the new metrics are at
+`reports/generation_metrics_leakage_free.csv`.
 
 LSTM: the committed run's exact per-plant cutoffs and data snapshot are not committed.
 The recomputation uses the code-defined 2026 test window and the committed scalers, but
 still differs. The committed values remain the authoritative recorded results; they
-must not be described as reproduced.
+must not be described as reproduced. The LSTMs were **not** retrained or changed.
 
 ## Known blockers before API work
 
-1. **RF serving leakage:** `Generation_per_MW` uses the current-day target. The RF
-   cannot be served as-is without retraining or a documented feature-contract change.
-2. **Historical reproducibility:** the exact 25-plant dataset and original `_split`
-   are missing, so the committed RF metric cannot be independently regenerated.
-3. **Dataset/README mismatch:** the canonical dataset has 37 plants / 29,369 rows, not
-   the README's 25 plants / 22,764 rows.
-4. **No hourly model:** every model predicts daily `DailyGeneration_MU`. Do not convert
-   these predictions into fake hourly values.
-5. **Negative wind predictions:** the Wind LSTM produced a minimum test prediction of
+1. **Historical reproducibility:** the exact 25-plant dataset and original `_split`
+   are missing, so the historical 25-feature RF metric cannot be independently
+   regenerated. This is a provenance limitation, not a serving blocker.
+2. **Dataset/README mismatch:** the canonical dataset has 37 plants / 29,369 rows, not
+   the README's historical 25 plants / 22,764 rows.
+3. **No hourly model:** every model predicts daily `DailyGeneration_MU`. Do not convert
+   these predictions into fake hourly values. Hourly forecasting requires an hourly
+   dataset and a separately trained model.
+4. **Negative wind predictions:** the Wind LSTM produced a minimum test prediction of
    about `-0.1055` MU. It is finite but non-physical; the serving layer needs an
-   explicit post-processing policy (for example, clip at 0) before exposing it.
-6. **No backend:** no API exists yet, and none was created in this task.
-7. **Plant identity:** the data uses free-text `PlantName`; there is no stable plant ID
+   explicit post-processing policy (for example, clip at 0) before exposing it. The RF
+   test predictions are all non-negative (min `0.0`, 0 negatives).
+5. **No backend:** no API exists yet, and none was created in this task.
+6. **Plant identity:** the data uses free-text `PlantName`; there is no stable plant ID
    or frontend↔data plant mapping yet.
+7. **Weather for the target day:** all models require weather features for the
+   forecast date. A serving layer must obtain them from an observed or forecast weather
+   source. This is legitimate input, not target leakage.

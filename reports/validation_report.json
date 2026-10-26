@@ -21,7 +21,7 @@
   "dataset": {
     "shape": [
       29110,
-      31
+      30
     ],
     "plants": 37,
     "solar_rows": 26370,
@@ -51,7 +51,6 @@
       "Generation_lag_7",
       "Generation_roll_3",
       "Generation_roll_7",
-      "Generation_per_MW",
       "Year",
       "Month",
       "DayOfYear",
@@ -81,7 +80,7 @@
   },
   "feature_contracts": {
     "random_forest": {
-      "count": 25,
+      "count": 24,
       "order": [
         "Capacity_MW",
         "Temperature",
@@ -99,7 +98,6 @@
         "Generation_lag_7",
         "Generation_roll_3",
         "Generation_roll_7",
-        "Generation_per_MW",
         "Year",
         "Month",
         "DayOfYear",
@@ -109,7 +107,12 @@
         "DayOfYear_sin",
         "DayOfYear_cos"
       ],
-      "source": "scripts/train_random_forest.py"
+      "source": "scripts/train_random_forest.py",
+      "status": "leakage_free",
+      "removed_features": {
+        "Generation_per_MW": "Removed because it is DailyGeneration_MU / Capacity_MW and therefore used the prediction target."
+      },
+      "manifest_order_matches": true
     },
     "lstm": {
       "count": 12,
@@ -135,12 +138,50 @@
       "source": "scripts/train_lstm_model(ABR).py"
     }
   },
+  "leakage_checks": {
+    "forbidden_rf_features": [
+      "CumulativeGeneration_MU",
+      "DailyGeneration_MU",
+      "Generation_per_MW"
+    ],
+    "forbidden_present_in_contract": [],
+    "generation_per_mw_in_dataset": false,
+    "generation_per_mw_in_rf_contract": false,
+    "generation_lags": {
+      "Generation_lag_1": "shift(1) per plant",
+      "Generation_lag_2": "shift(2) per plant",
+      "Generation_lag_3": "shift(3) per plant",
+      "Generation_lag_7": "shift(7) per plant"
+    },
+    "generation_rolling": {
+      "Generation_roll_3": "shift(1) then rolling(3, min_periods=3).mean() per plant",
+      "Generation_roll_7": "shift(1) then rolling(7, min_periods=7).mean() per plant"
+    },
+    "weather_lags": {
+      "Temperature_lag_1": "shift(1) of Temperature per plant",
+      "Humidity_lag_1": "shift(1) of Humidity per plant",
+      "WindSpeed_lag_1": "shift(1) of WindSpeed per plant",
+      "GHI_lag_1": "shift(1) of GHI per plant"
+    },
+    "empirical_reconstruction": {
+      "checked_rows": 290101,
+      "max_abs_delta": 1.7763568394002505e-15,
+      "violations": [],
+      "verified": true
+    },
+    "target_not_in_rf_contract": true
+  },
   "artifacts": {
     "random_forest": {
       "path": "models/random_forest_model.pkl",
       "loaded": true,
-      "n_features_in": 25,
-      "trees": 300
+      "n_features_in": 24,
+      "trees": 300,
+      "sha256": "94f330e9906bf5b81b478b3d8a3a6a62a25b9c0f89ffa7b80672258f51dc464c",
+      "size_bytes": 554842792,
+      "manifest_hash_matches": true,
+      "serving_safe": true,
+      "status": "production_candidate"
     },
     "solar_lstm": {
       "path": "models/solar_lstm.keras",
@@ -201,8 +242,8 @@
       "rows": 5842,
       "finite": true,
       "min": 0.0,
-      "max": 4.516299999999997,
-      "mean": 0.7554501997032977
+      "max": 5.318799999999997,
+      "mean": 0.7858622598465953
     },
     "solar_lstm": {
       "sequences": 5290,
@@ -229,36 +270,57 @@
   },
   "metric_reproduction": {
     "random_forest": {
-      "split": "regenerated per-plant chronological 80/20 split",
-      "test_rows": 5842,
-      "recomputed": {
-        "MAE": 0.09544728974095627,
-        "RMSE": 0.2889276595257763,
-        "R2": 0.892564042557538
+      "feature_contract_changed": true,
+      "current_feature_count": 24,
+      "historical_25f": {
+        "metrics": {
+          "MAE": 0.1116379764255369,
+          "RMSE": 0.300338883923733,
+          "R2": 0.8711579851453006
+        },
+        "source": "reports/generation_metrics.csv",
+        "status": "historical actual metric from the removed 25-feature leaked contract",
+        "comparable_to_current_model": false,
+        "reproduced": false,
+        "note": "Preserved for provenance only. The original 22,764-row / 25-plant feature dataset and its _split are absent, and the feature contract changed (Generation_per_MW removed), so these values are neither reproduced nor comparable."
       },
-      "comparison": {
-        "MAE": {
-          "committed": 0.11163797642553697,
-          "recomputed": 0.09544728974095627,
-          "delta": -0.016190686684580693,
-          "reproduced": false
+      "leakage_free_24f": {
+        "split": "regenerated per-plant chronological 80/20 split",
+        "test_rows": 5842,
+        "recomputed": {
+          "MAE": 0.132150218240383,
+          "RMSE": 0.28278781980879913,
+          "R2": 0.8970816491056874
         },
-        "RMSE": {
-          "committed": 0.30033888392373304,
-          "recomputed": 0.2889276595257763,
-          "delta": -0.01141122439795672,
-          "reproduced": false
+        "saved": {
+          "MAE": 0.132150218240383,
+          "RMSE": 0.2827878198087991,
+          "R2": 0.8970816491056874
         },
-        "R2": {
-          "committed": 0.8711579851453006,
-          "recomputed": 0.892564042557538,
-          "delta": 0.021406057412237334,
-          "reproduced": false
+        "matches_saved_report": true,
+        "comparison": {
+          "MAE": {
+            "committed": 0.132150218240383,
+            "recomputed": 0.132150218240383,
+            "delta": 0.0,
+            "reproduced": true
+          },
+          "RMSE": {
+            "committed": 0.2827878198087991,
+            "recomputed": 0.28278781980879913,
+            "delta": 5.551115123125783e-17,
+            "reproduced": true
+          },
+          "R2": {
+            "committed": 0.8970816491056874,
+            "recomputed": 0.8970816491056874,
+            "delta": 0.0,
+            "reproduced": true
+          },
+          "all_reproduced": true
         },
-        "all_reproduced": false
-      },
-      "reproduced": false,
-      "note": "The committed RF metrics were produced from a 22,764-row / 25-plant feature dataset that is not present in any branch or commit. The regenerated dataset has 29,110 rows / 37 plants, so this comparison tests the pipeline, not the historical split."
+        "status": "current production-candidate metric; recomputed and matches saved report"
+      }
     },
     "lstm": {
       "Solar": {
@@ -321,8 +383,23 @@
       }
     }
   },
+  "daily_contract": {
+    "frequency": "daily",
+    "target": "DailyGeneration_MU",
+    "unit": "MU/day",
+    "horizon": "future days",
+    "hourly_forecasting": false,
+    "model_frequencies": {
+      "random_forest_daily": "daily",
+      "solar_lstm_daily": "daily",
+      "wind_lstm_daily": "daily"
+    },
+    "hourly_scripts": [],
+    "hourly_artifacts": [],
+    "verified": true
+  },
   "readme_dataset_comparison": {
-    "expected": {
+    "expected_historical_readme_figures": {
       "feature_rows": 22764,
       "train_rows": 17193,
       "test_rows": 5571,
@@ -382,7 +459,25 @@
     {
       "name": "RF feature list matches specification",
       "passed": true,
-      "detail": "25 features, exact-order match=True",
+      "detail": "24 features, exact-order match=True",
+      "structural": true
+    },
+    {
+      "name": "RF feature list matches model manifest",
+      "passed": true,
+      "detail": "manifest_count=24, order_match=True",
+      "structural": true
+    },
+    {
+      "name": "RF feature contract contains no target-leakage feature",
+      "passed": true,
+      "detail": "no forbidden features",
+      "structural": true
+    },
+    {
+      "name": "Generation_per_MW is absent from the dataset",
+      "passed": true,
+      "detail": "dataset_has_column=False, contract_has_feature=False",
       "structural": true
     },
     {
@@ -412,7 +507,7 @@
     {
       "name": "Generated dataset shape",
       "passed": true,
-      "detail": "29110 rows x 31 columns; plants=37",
+      "detail": "29110 rows x 30 columns; plants=37",
       "structural": true
     },
     {
@@ -440,9 +535,9 @@
       "structural": true
     },
     {
-      "name": "RF feature matrix is exactly 25 columns in order",
+      "name": "RF feature matrix is exactly 24 columns in order",
       "passed": true,
-      "detail": "shape=(29110, 25)",
+      "detail": "shape=(29110, 24)",
       "structural": true
     },
     {
@@ -452,15 +547,45 @@
       "structural": true
     },
     {
-      "name": "Random Forest loads and expects 25 features",
+      "name": "Generation lag/rolling features are historical-only (leakage-safe)",
       "passed": true,
-      "detail": "RandomForestRegressor, n_features_in_=25, trees=300",
+      "detail": "checked_rows=290101, max_abs_delta=1.776e-15, violations=none",
       "structural": true
     },
     {
-      "name": "RF artifact feature order matches committed importance report",
+      "name": "Random Forest loads and expects 24 features",
       "passed": true,
-      "detail": "all 25 importances match index-by-index",
+      "detail": "RandomForestRegressor, n_features_in_=24, trees=300",
+      "structural": true
+    },
+    {
+      "name": "RF artifact feature order matches 24-feature importance report",
+      "passed": true,
+      "detail": "report_rows=24, all importances match index-by-index=True",
+      "structural": true
+    },
+    {
+      "name": "RF importances cover exactly 24 features and sum to 1",
+      "passed": true,
+      "detail": "rows=24, unique=24, sum=0.999999999999999",
+      "structural": true
+    },
+    {
+      "name": "Historical 25-feature importance report preserved",
+      "passed": true,
+      "detail": "path=generation_feature_importance_historical_25f.csv, exists=True",
+      "structural": true
+    },
+    {
+      "name": "RF artifact hash matches model manifest",
+      "passed": true,
+      "detail": "sha256=94f330e9906bf5b81b478b3d8a3a6a62a25b9c0f89ffa7b80672258f51dc464c, manifest=94f330e9906bf5b81b478b3d8a3a6a62a25b9c0f89ffa7b80672258f51dc464c",
+      "structural": true
+    },
+    {
+      "name": "Manifest marks RF as a serving-safe production candidate",
+      "passed": true,
+      "detail": "status=production_candidate, serving_safe=True, target=DailyGeneration_MU, frequency=daily",
       "structural": true
     },
     {
@@ -490,7 +615,7 @@
     {
       "name": "RF inference on test rows is finite",
       "passed": true,
-      "detail": "n=5842, min=0.0000, max=4.5163, mean=0.7555",
+      "detail": "n=5842, min=0.0000, max=5.3188, mean=0.7859",
       "structural": true
     },
     {
@@ -506,9 +631,15 @@
       "structural": true
     },
     {
-      "name": "RF metrics reproduce committed values",
-      "passed": false,
-      "detail": "recomputed MAE/RMSE/R2=0.095447/0.288928/0.892564; committed=0.111638/0.300339/0.871158",
+      "name": "Saved leakage-free RF metrics match recomputation",
+      "passed": true,
+      "detail": "recomputed MAE/RMSE/R2=0.132150218/0.282787820/0.897081649; saved=0.132150218/0.282787820/0.897081649",
+      "structural": true
+    },
+    {
+      "name": "Historical 25-feature RF metrics preserved separately",
+      "passed": true,
+      "detail": "0.111638/0.300339/0.871158 kept for provenance; feature contract changed so not comparable",
       "structural": false
     },
     {
@@ -524,15 +655,36 @@
       "structural": false
     },
     {
-      "name": "Regenerated dataset matches README 25-plant / 22,764-row claims",
+      "name": "Historical README 25-plant / 22,764-row figures remain distinguishable from current dataset",
       "passed": false,
-      "detail": "actual={'feature_rows': 29110, 'train_rows': 23268, 'test_rows': 5842, 'plants': 37} vs expected={'feature_rows': 22764, 'train_rows': 17193, 'test_rows': 5571, 'plants': 25}",
+      "detail": "actual={'feature_rows': 29110, 'train_rows': 23268, 'test_rows': 5842, 'plants': 37} vs historical={'feature_rows': 22764, 'train_rows': 17193, 'test_rows': 5571, 'plants': 25}; documented as provenance only, not reproduced",
       "structural": false
+    },
+    {
+      "name": "Manifest enforces the daily forecasting contract",
+      "passed": true,
+      "detail": "target=DailyGeneration_MU, target_frequency=daily, contract_frequency=daily, hourly=False, model_frequencies=['daily']",
+      "structural": true
+    },
+    {
+      "name": "No hourly forecasting code in scripts",
+      "passed": true,
+      "detail": "no hourly references found",
+      "structural": true
+    },
+    {
+      "name": "No hourly model artifact exists",
+      "passed": true,
+      "detail": "none",
+      "structural": true
     }
   ],
   "structural_status": "pass",
   "metric_reproduction_status": {
-    "random_forest": "not_reproduced",
+    "random_forest": {
+      "historical_25f": "preserved_for_provenance_not_reproduced_not_comparable",
+      "leakage_free_24f": "saved_report_matches_recomputation"
+    },
     "lstm": {
       "Solar": "not_reproduced",
       "Wind": "not_reproduced"
