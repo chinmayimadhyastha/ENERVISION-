@@ -1,31 +1,19 @@
-import os
-import sys
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import joblib
-
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+from tensorflow.keras.layers import LSTM, Dense, Dropout, Input
+from tensorflow.keras.models import Sequential
 
-# Set seed for reproducibility
-def set_seeds(seed=42):
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-
-set_seeds(42)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_PATH = BASE_DIR / "data/final/full_generation_weather_dataset.csv"
+DATA_PATH = BASE_DIR / "data" / "final" / "full_generation_weather_dataset.csv"
 MODELS_DIR = BASE_DIR / "models"
 REPORTS_DIR = BASE_DIR / "reports"
-
-MODELS_DIR.mkdir(parents=True, exist_ok=True)
-REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 BASE_FEATURE_COLS = [
     "Capacity_MW",
@@ -38,294 +26,327 @@ BASE_FEATURE_COLS = [
     "Month_cos",
     "DayOfYear_sin",
     "DayOfYear_cos",
-    "Lagged_Generation"
+    "Lagged_Generation",
 ]
-NEW_FEATURE_COLS = BASE_FEATURE_COLS + ["Rolling_Generation_7"]
+ROLLING_FEATURE = "Rolling_Generation_7"
+ROLLING_FEATURE_COLS = [*BASE_FEATURE_COLS, ROLLING_FEATURE]
 TARGET_COL = "DailyGeneration_MU"
 SEQ_LEN = 7
+SEED = 42
 
 
-def load_and_clean_solar_data(file_path: Path, include_rolling: bool = False):
+def set_seeds(seed: int = SEED) -> None:
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+
+
+def load_and_clean_solar_data(
+    file_path: Path, include_rolling: bool = False
+) -> pd.DataFrame:
     df = pd.read_csv(file_path)
-    df["Date"] = pd.to_datetime(df["Date"])
-    
-    solar_df = df[df["Type"] == "Solar"].copy()
-    solar_df = solar_df.sort_values(["PlantName", "Date"]).reset_index(drop=True)
+    required_columns = {
+        "Date",
+        "Type",
+        "PlantName",
+        TARGET_COL,
+        "Capacity_MW",
+        "Temperature",
+        "Humidity",
+        "WindSpeed",
+        "GHI",
+        "Pressure",
+    }
+    missing_columns = required_columns.difference(df.columns)
+    if missing_columns:
+        raise ValueError(
+            f"Dataset is missing required columns: {', '.join(sorted(missing_columns))}"
+        )
 
-    # Handle sentinel weather values (-900 or lower)
+    df["Date"] = pd.to_datetime(df["Date"], errors="raise")
+    solar_df = (
+        df.loc[df["Type"] == "Solar"]
+        .sort_values(["PlantName", "Date"])
+        .reset_index(drop=True)
+        .copy()
+    )
+    if solar_df.empty:
+        raise ValueError("The dataset contains no Solar records.")
+
     weather_cols = ["Temperature", "Humidity", "WindSpeed", "GHI", "Pressure"]
     for col in weather_cols:
         solar_df[col] = solar_df[col].mask(solar_df[col] <= -900, np.nan)
-        solar_df[col] = solar_df.groupby("PlantName")[col].transform(lambda g: g.ffill().bfill())
-        if solar_df[col].isna().sum() > 0:
+        solar_df[col] = solar_df.groupby("PlantName")[col].transform(
+            lambda values: values.ffill().bfill()
+        )
+        if solar_df[col].isna().any():
             solar_df[col] = solar_df[col].fillna(solar_df[col].mean())
 
-    # Clip generation to non-negative
     solar_df[TARGET_COL] = solar_df[TARGET_COL].clip(lower=0.0)
-
-    # Cyclical temporal features
     month = solar_df["Date"].dt.month
-    dayofyear = solar_df["Date"].dt.dayofyear
+    day_of_year = solar_df["Date"].dt.dayofyear
     solar_df["Month_sin"] = np.sin(2 * np.pi * month / 12)
     solar_df["Month_cos"] = np.cos(2 * np.pi * month / 12)
-    solar_df["DayOfYear_sin"] = np.sin(2 * np.pi * dayofyear / 365.25)
-    solar_df["DayOfYear_cos"] = np.cos(2 * np.pi * dayofyear / 365.25)
+    solar_df["DayOfYear_sin"] = np.sin(2 * np.pi * day_of_year / 365.25)
+    solar_df["DayOfYear_cos"] = np.cos(2 * np.pi * day_of_year / 365.25)
 
-    # Plant-wise Lagged Generation (shift 1 strictly per plant)
-    solar_df["Lagged_Generation"] = solar_df.groupby("PlantName")[TARGET_COL].shift(1)
-
+    generation_by_plant = solar_df.groupby("PlantName")[TARGET_COL]
+    solar_df["Lagged_Generation"] = generation_by_plant.shift(1)
+    required_lags = ["Lagged_Generation"]
     if include_rolling:
-        # Plant-wise 7-day rolling mean of previous days (shift(1).rolling(7))
-        solar_df["Rolling_Generation_7"] = (
-            solar_df.groupby("PlantName")[TARGET_COL]
-                    .transform(lambda g: g.shift(1).rolling(7).mean())
+        solar_df[ROLLING_FEATURE] = generation_by_plant.transform(
+            lambda values: values.shift(1).rolling(7, min_periods=7).mean()
         )
-        drop_cols = ["Lagged_Generation", "Rolling_Generation_7"]
-    else:
-        drop_cols = ["Lagged_Generation"]
+        required_lags.append(ROLLING_FEATURE)
 
-    # Drop NaN rows resulting from lags/rolling
-    solar_df = solar_df.dropna(subset=drop_cols).reset_index(drop=True)
-    return solar_df
+    return solar_df.dropna(subset=required_lags).reset_index(drop=True)
 
 
-def split_time_based_per_plant(solar_df: pd.DataFrame, val_ratio: float = 0.20):
+def split_time_based_per_plant(
+    solar_df: pd.DataFrame, val_ratio: float = 0.20
+) -> tuple[pd.DataFrame, list[tuple[pd.DataFrame, int, int]]]:
+    if not 0 < val_ratio < 1:
+        raise ValueError("val_ratio must be between 0 and 1.")
+
     plant_split_info = []
     train_rows = []
-
-    for plant, group in solar_df.groupby("PlantName"):
-        group = group.sort_values("Date").reset_index(drop=True)
-        pre_2026 = group[group["Date"] <= "2025-12-31"]
-        post_2025 = group[group["Date"] >= "2026-01-01"]
-
-        if len(pre_2026) < SEQ_LEN + 1:
+    for _, plant_df in solar_df.groupby("PlantName"):
+        group = plant_df.sort_values("Date").reset_index(drop=True)
+        pre_2026 = group[group["Date"] < pd.Timestamp("2026-01-01")]
+        if pre_2026.empty:
             continue
 
-        n_pre = len(pre_2026)
-        n_train = int(n_pre * (1.0 - val_ratio))
+        train_count = int(len(pre_2026) * (1.0 - val_ratio))
+        if train_count <= SEQ_LEN or train_count >= len(pre_2026):
+            continue
 
-        train_part = pre_2026.iloc[:n_train]
-        train_rows.append(train_part)
+        train_rows.append(pre_2026.iloc[:train_count])
+        plant_split_info.append((group, train_count, len(pre_2026)))
 
-        val_start_idx = len(train_part)
-        test_start_idx = len(pre_2026)
-
-        plant_split_info.append((group, val_start_idx, test_start_idx))
-
-    train_df = pd.concat(train_rows).reset_index(drop=True)
-    return train_df, plant_split_info
+    if not train_rows:
+        raise ValueError(
+            "No plants have enough pre-2026 records for both training and validation."
+        )
+    return pd.concat(train_rows, ignore_index=True), plant_split_info
 
 
-def fit_scalers(train_df: pd.DataFrame, feature_cols: list):
+def fit_scalers(
+    train_df: pd.DataFrame, feature_cols: list[str]
+) -> tuple[StandardScaler, StandardScaler]:
     feature_scaler = StandardScaler()
     target_scaler = StandardScaler()
-
     feature_scaler.fit(train_df[feature_cols])
     target_scaler.fit(train_df[[TARGET_COL]])
-
     return feature_scaler, target_scaler
 
 
-def create_sequences(plant_split_info, feature_scaler, target_scaler, feature_cols: list, seq_len: int = SEQ_LEN):
-    X_tr, y_tr = [], []
-    X_v, y_v = [], []
-    X_te, y_te = [], []
+def create_sequences(
+    plant_split_info: list[tuple[pd.DataFrame, int, int]],
+    feature_scaler: StandardScaler,
+    target_scaler: StandardScaler,
+    feature_cols: list[str],
+    seq_len: int = SEQ_LEN,
+) -> tuple[tuple[np.ndarray, np.ndarray], ...]:
+    sequences: list[list[np.ndarray]] = [[], [], []]
+    targets: list[list[float]] = [[], [], []]
 
     for group, val_start_idx, test_start_idx in plant_split_info:
-        X_scaled = feature_scaler.transform(group[feature_cols])
-        y_scaled = target_scaler.transform(group[[TARGET_COL]]).flatten()
-
-        for t in range(seq_len, len(group)):
-            seq = X_scaled[t - seq_len : t]
-            target = y_scaled[t]
-
-            if t < val_start_idx:
-                X_tr.append(seq)
-                y_tr.append(target)
-            elif t < test_start_idx:
-                X_v.append(seq)
-                y_v.append(target)
+        scaled_features = feature_scaler.transform(group[feature_cols])
+        scaled_targets = target_scaler.transform(group[[TARGET_COL]]).ravel()
+        for target_idx in range(seq_len, len(group)):
+            if target_idx < val_start_idx:
+                split_idx = 0
+            elif target_idx < test_start_idx:
+                split_idx = 1
             else:
-                X_te.append(seq)
-                y_te.append(target)
+                split_idx = 2
+            sequences[split_idx].append(
+                scaled_features[target_idx - seq_len : target_idx]
+            )
+            targets[split_idx].append(float(scaled_targets[target_idx]))
 
-    return (np.array(X_tr), np.array(y_tr)), (np.array(X_v), np.array(y_v)), (np.array(X_te), np.array(y_te))
+    result = tuple(
+        (np.asarray(x, dtype=np.float32), np.asarray(y, dtype=np.float32))
+        for x, y in zip(sequences, targets)
+    )
+    for split_name, (x_values, _) in zip(("training", "validation", "test"), result):
+        if x_values.size == 0:
+            raise ValueError(
+                f"The {split_name} split contains no sequences; check the data dates "
+                "and per-plant record counts."
+            )
+    return result
 
 
-def build_solar_lstm(input_shape):
-    model = Sequential([
-        Input(shape=input_shape),
-        LSTM(64, return_sequences=True),
-        Dropout(0.3),
-        LSTM(32),
-        Dropout(0.3),
-        Dense(16, activation="relu"),
-        Dense(1)
-    ])
-    model.compile(optimizer=tf.keras.optimizers.Nadam(learning_rate=0.0001), loss="mse")
+def build_solar_lstm(input_shape: tuple[int, int]) -> Sequential:
+    model = Sequential(
+        [
+            Input(shape=input_shape),
+            LSTM(64, return_sequences=True),
+            Dropout(0.3),
+            LSTM(32),
+            Dropout(0.3),
+            Dense(16, activation="relu"),
+            Dense(1),
+        ]
+    )
+    model.compile(
+        optimizer=tf.keras.optimizers.Nadam(learning_rate=0.0001), loss="mse"
+    )
     return model
 
 
-def calculate_metrics(model, X, y, target_scaler, epsilon=1e-4):
-    preds_scaled = model.predict(X, verbose=0).flatten()
-    y_scaled = y.flatten()
+def calculate_metrics(
+    model: Sequential,
+    x_values: np.ndarray,
+    y_values: np.ndarray,
+    target_scaler: StandardScaler,
+    epsilon: float = 1e-4,
+) -> tuple[float, float, float, float, int, np.ndarray, np.ndarray]:
+    predictions_scaled = model.predict(x_values, verbose=0).reshape(-1, 1)
+    actual_scaled = y_values.reshape(-1, 1)
+    predictions = target_scaler.inverse_transform(predictions_scaled).ravel()
+    actual = target_scaler.inverse_transform(actual_scaled).ravel()
 
-    y_pred = target_scaler.inverse_transform(preds_scaled.reshape(-1, 1)).flatten()
-    y_true = target_scaler.inverse_transform(y_scaled.reshape(-1, 1)).flatten()
+    mae = float(mean_absolute_error(actual, predictions))
+    rmse = float(np.sqrt(mean_squared_error(actual, predictions)))
+    r2 = float(r2_score(actual, predictions))
+    nonzero_mask = np.abs(actual) > epsilon
+    excluded_count = int(np.count_nonzero(~nonzero_mask))
+    mape = (
+        float(
+            np.mean(
+                np.abs(
+                    (actual[nonzero_mask] - predictions[nonzero_mask])
+                    / actual[nonzero_mask]
+                )
+            )
+            * 100.0
+        )
+        if np.any(nonzero_mask)
+        else float("nan")
+    )
+    return mae, rmse, r2, mape, excluded_count, actual, predictions
 
-    mae = mean_absolute_error(y_true, y_pred)
-    rmse = np.sqrt(mean_squared_error(y_true, y_pred))
-    r2 = r2_score(y_true, y_pred)
 
-    mask = np.abs(y_true) > epsilon
-    excluded_count = int(np.sum(~mask))
-    if np.sum(mask) > 0:
-        mape = np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100.0
-    else:
-        mape = np.nan
-
-    return mae, rmse, r2, mape, excluded_count, y_true, y_pred
-
-
-def run_single_experiment(feature_cols: list, include_rolling: bool, seed=42):
+def run_single_experiment(
+    feature_cols: list[str], include_rolling: bool, seed: int = SEED
+) -> dict[str, object]:
     set_seeds(seed)
-    
     solar_df = load_and_clean_solar_data(DATA_PATH, include_rolling=include_rolling)
-    train_df, plant_split_info = split_time_based_per_plant(solar_df, val_ratio=0.20)
-
-    f_scaler, t_scaler = fit_scalers(train_df, feature_cols)
-    (X_train, y_train), (X_val, y_val), (X_test, y_test) = create_sequences(
-        plant_split_info, f_scaler, t_scaler, feature_cols, seq_len=SEQ_LEN
+    train_df, plant_split_info = split_time_based_per_plant(solar_df)
+    feature_scaler, target_scaler = fit_scalers(train_df, feature_cols)
+    (x_train, y_train), (x_val, y_val), (x_test, y_test) = create_sequences(
+        plant_split_info, feature_scaler, target_scaler, feature_cols
     )
 
-    input_shape = (X_train.shape[1], X_train.shape[2])
-    model = build_solar_lstm(input_shape)
-
+    model = build_solar_lstm((x_train.shape[1], x_train.shape[2]))
     callbacks = [
         EarlyStopping(monitor="val_loss", patience=15, restore_best_weights=True),
-        ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=5, min_lr=1e-6)
+        ReduceLROnPlateau(
+            monitor="val_loss", factor=0.5, patience=5, min_lr=1e-6
+        ),
     ]
-
     history = model.fit(
-        X_train, y_train,
-        validation_data=(X_val, y_val),
+        x_train,
+        y_train,
+        validation_data=(x_val, y_val),
         epochs=60,
         batch_size=32,
         shuffle=False,
         callbacks=callbacks,
-        verbose=0
+        verbose=0,
     )
 
-    best_epoch = int(np.argmin(history.history["val_loss"]) + 1)
-    val_loss = float(np.min(history.history["val_loss"]))
-
-    val_mae, val_rmse, val_r2, val_mape, val_excl, _, _ = calculate_metrics(model, X_val, y_val, t_scaler)
-    test_mae, test_rmse, test_r2, test_mape, test_excl, y_true_test, y_pred_test = calculate_metrics(model, X_test, y_test, t_scaler)
-
+    val_metrics = calculate_metrics(model, x_val, y_val, target_scaler)
+    test_metrics = calculate_metrics(model, x_test, y_test, target_scaler)
     return {
         "model": model,
-        "history": history,
-        "best_epoch": best_epoch,
-        "val_loss": val_loss,
-        "val_mae": val_mae,
-        "val_rmse": val_rmse,
-        "val_r2": val_r2,
-        "val_mape": val_mape,
-        "val_excl": val_excl,
-        "test_mae": test_mae,
-        "test_rmse": test_rmse,
-        "test_r2": test_r2,
-        "test_mape": test_mape,
-        "test_excl": test_excl,
-        "train_samples": X_train.shape[0],
-        "val_samples": X_val.shape[0],
-        "test_samples": X_test.shape[0],
-        "feature_count": len(feature_cols)
+        "best_epoch": int(np.argmin(history.history["val_loss"]) + 1),
+        "val_loss": float(np.min(history.history["val_loss"])),
+        "val_mae": val_metrics[0],
+        "val_rmse": val_metrics[1],
+        "val_r2": val_metrics[2],
+        "val_mape": val_metrics[3],
+        "val_excluded": val_metrics[4],
+        "test_mae": test_metrics[0],
+        "test_rmse": test_metrics[1],
+        "test_r2": test_metrics[2],
+        "test_mape": test_metrics[3],
+        "test_excluded": test_metrics[4],
+        "train_samples": len(x_train),
+        "val_samples": len(x_val),
+        "test_samples": len(x_test),
     }
 
 
-def main():
+def main() -> None:
+    MODELS_DIR.mkdir(parents=True, exist_ok=True)
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    if not DATA_PATH.is_file():
+        raise FileNotFoundError(f"Dataset not found: {DATA_PATH}")
+
     print("=" * 80)
-    print("EXPERIMENT: ADDING 7-DAY ROLLING GENERATION FEATURE (Rolling_Generation_7)")
+    print("EXPERIMENT: ADDING 7-DAY ROLLING GENERATION FEATURE")
     print("=" * 80)
 
-    # 1. Baseline Model (11 Features)
-    print("\n1. Running BASELINE Model (11 Features)...")
-    base_res = run_single_experiment(BASE_FEATURE_COLS, include_rolling=False)
-    print(f"  Baseline Train samples: {base_res['train_samples']}, Val: {base_res['val_samples']}, Test: {base_res['test_samples']}")
-    print(f"  Baseline Val Loss : {base_res['val_loss']:.6f}")
-    print(f"  Baseline Val MAE  : {base_res['val_mae']:.6f} MU, RMSE: {base_res['val_rmse']:.6f} MU, R²: {base_res['val_r2']:.6f}, MAPE: {base_res['val_mape']:.4f}%")
-    print(f"  Baseline Test MAE : {base_res['test_mae']:.6f} MU, RMSE: {base_res['test_rmse']:.6f} MU, R²: {base_res['test_r2']:.6f}, MAPE: {base_res['test_mape']:.4f}%")
+    experiments = [
+        ("Baseline (11 features)", BASE_FEATURE_COLS, False),
+        (
+            "With Rolling_Generation_7 (12 features)",
+            ROLLING_FEATURE_COLS,
+            True,
+        ),
+    ]
+    results = []
+    for label, feature_cols, include_rolling in experiments:
+        print(f"\nRunning {label}...")
+        result = run_single_experiment(feature_cols, include_rolling)
+        result["feature_set"] = label
+        results.append(result)
+        print(
+            f"  Samples - train: {result['train_samples']}, "
+            f"validation: {result['val_samples']}, test: {result['test_samples']}"
+        )
+        print(
+            f"  Validation loss: {result['val_loss']:.6f}; "
+            f"MAE: {result['val_mae']:.6f}; RMSE: {result['val_rmse']:.6f}; "
+            f"R2: {result['val_r2']:.6f}"
+        )
+        print(
+            f"  Test MAE: {result['test_mae']:.6f}; "
+            f"RMSE: {result['test_rmse']:.6f}; R2: {result['test_r2']:.6f}"
+        )
 
-    # 2. Experiment Model (12 Features including Rolling_Generation_7)
-    print("\n2. Running EXPERIMENT Model (12 Features: Base + Rolling_Generation_7)...")
-    exp_res = run_single_experiment(NEW_FEATURE_COLS, include_rolling=True)
-    print(f"  Experiment Train samples: {exp_res['train_samples']}, Val: {exp_res['val_samples']}, Test: {exp_res['test_samples']}")
-    print(f"  Experiment Val Loss : {exp_res['val_loss']:.6f}")
-    print(f"  Experiment Val MAE  : {exp_res['val_mae']:.6f} MU, RMSE: {exp_res['val_rmse']:.6f} MU, R²: {exp_res['val_r2']:.6f}, MAPE: {exp_res['val_mape']:.4f}%")
-    print(f"  Experiment Test MAE : {exp_res['test_mae']:.6f} MU, RMSE: {exp_res['test_rmse']:.6f} MU, R²: {exp_res['test_r2']:.6f}, MAPE: {exp_res['test_mape']:.4f}%")
+    baseline, rolling = results
+    improved = rolling["val_loss"] < baseline["val_loss"]
+    if improved:
+        model_path = MODELS_DIR / "solar_lstm_rolling_7.keras"
+        rolling["model"].save(model_path)
+        print(f"\nSaved improved model to {model_path}")
 
-    # Compare validation performance
-    val_loss_diff = exp_res['val_loss'] - base_res['val_loss']
-    val_r2_diff = exp_res['val_r2'] - base_res['val_r2']
-    test_r2_diff = exp_res['test_r2'] - base_res['test_r2']
-
-    is_improved = (exp_res['val_loss'] < base_res['val_loss']) or (exp_res['val_r2'] > base_res['val_r2'])
-    decision = "KEEP (Improved Validation Performance)" if is_improved else "REVERT (No Validation Improvement)"
-
-    # Save results to CSV
     csv_rows = [
         {
             "Model": "Solar LSTM",
-            "Feature_Set": "Baseline (11 features)",
-            "Validation_Loss": base_res["val_loss"],
-            "Validation_MAE": base_res["val_mae"],
-            "Validation_RMSE": base_res["val_rmse"],
-            "Validation_R2": base_res["val_r2"],
-            "Validation_MAPE": base_res["val_mape"],
-            "Test_MAE": base_res["test_mae"],
-            "Test_RMSE": base_res["test_rmse"],
-            "Test_R2": base_res["test_r2"],
-            "Test_MAPE": base_res["test_mape"],
-            "Best_Epoch": base_res["best_epoch"]
-        },
-        {
-            "Model": "Solar LSTM",
-            "Feature_Set": "With Rolling_Generation_7 (12 features)",
-            "Validation_Loss": exp_res["val_loss"],
-            "Validation_MAE": exp_res["val_mae"],
-            "Validation_RMSE": exp_res["val_rmse"],
-            "Validation_R2": exp_res["val_r2"],
-            "Validation_MAPE": exp_res["val_mape"],
-            "Test_MAE": exp_res["test_mae"],
-            "Test_RMSE": exp_res["test_rmse"],
-            "Test_R2": exp_res["test_r2"],
-            "Test_MAPE": exp_res["test_mape"],
-            "Best_Epoch": exp_res["best_epoch"]
+            "Feature_Set": result["feature_set"],
+            "Validation_Loss": result["val_loss"],
+            "Validation_MAE": result["val_mae"],
+            "Validation_RMSE": result["val_rmse"],
+            "Validation_R2": result["val_r2"],
+            "Validation_MAPE": result["val_mape"],
+            "Test_MAE": result["test_mae"],
+            "Test_RMSE": result["test_rmse"],
+            "Test_R2": result["test_r2"],
+            "Test_MAPE": result["test_mape"],
+            "Best_Epoch": result["best_epoch"],
         }
+        for result in results
     ]
+    report_path = REPORTS_DIR / "solar_lstm_rolling_generation_experiment.csv"
+    pd.DataFrame(csv_rows).to_csv(report_path, index=False)
 
-    csv_df = pd.DataFrame(csv_rows)
-    csv_path = REPORTS_DIR / "solar_lstm_rolling_generation_experiment.csv"
-    csv_df.to_csv(csv_path, index=False)
-    print(f"\nSaved experiment CSV -> {csv_path}")
+    print(f"\nSaved experiment report to {report_path}")
+    print(f"Validation loss improved: {'YES' if improved else 'NO'}")
 
-    # Save model if improved
-    if is_improved:
-        model_save_path = MODELS_DIR / "solar_lstm_rolling_7.keras"
-        exp_res["model"].save(model_save_path)
-        print(f"Saved improved model -> {model_save_path}")
-
-    print("\n" + "=" * 80)
-    print("COMPARISON & DECISION SUMMARY")
-    print("=" * 80)
-    print(f"Baseline Validation R² : {base_res['val_r2']:.6f}")
-    print(f"New Validation R²      : {exp_res['val_r2']:.6f}")
-    print(f"Validation R² Change   : {val_r2_diff:+.6f}")
-    print(f"Baseline Test R²       : {base_res['test_r2']:.6f}")
-    print(f"New Test R²            : {exp_res['test_r2']:.6f}")
-    print(f"Test R² Change         : {test_r2_diff:+.6f}")
-    print(f"Decision               : {decision}")
 
 if __name__ == "__main__":
     main()

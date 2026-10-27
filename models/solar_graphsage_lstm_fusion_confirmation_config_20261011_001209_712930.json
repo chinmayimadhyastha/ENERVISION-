@@ -1,0 +1,26 @@
+{
+  "decision": "REVERT to rolling-feature Solar LSTM",
+  "validation_confirmed": false,
+  "validation_improved_each_seed": {
+    "42": true,
+    "43": false,
+    "44": true
+  },
+  "candidate_mean_validation_r2": 0.8426152070363363,
+  "baseline_mean_validation_r2": 0.8393539786338806,
+  "candidate_mean_validation_mae": 0.15910624464352927,
+  "baseline_mean_validation_mae": 0.16359279553095496,
+  "selected_checkpoint_seed": null,
+  "candidate_test_evaluated": false,
+  "candidate_test_metrics": null,
+  "sample_counts": {
+    "train": 17415,
+    "validation": 4419,
+    "test": 4326
+  },
+  "checkpoint_paths": {
+    "42": "models\\solar_graphsage_lstm_fusion_residual_confirm_20261011_001209_712930_seed42.keras",
+    "43": "models\\solar_graphsage_lstm_fusion_residual_confirm_20261011_001209_712930_seed43.keras",
+    "44": "models\\solar_graphsage_lstm_fusion_residual_confirm_20261011_001209_712930_seed44.keras"
+  }
+}

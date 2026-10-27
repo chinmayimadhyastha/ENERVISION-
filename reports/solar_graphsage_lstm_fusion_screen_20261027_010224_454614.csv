@@ -1,0 +1,5 @@
+model,variant,seed,k_neighbors,hidden_dimension,graphsage_depth,best_epoch,training_duration_seconds,train_sample_count,validation_sample_count,validation_mae,validation_rmse,validation_r2,validation_mape,checkpoint,validation_mape_excluded_zero_targets
+rolling_lstm_baseline,temporal_only,42,,,,59,264.6388569000119,17415,4419,0.1614727526903152,0.2521156851183015,0.8416122198104858,29.510757327079773,,
+graphsage_graph_only,graph_only,42,3.0,16.0,1.0,60,87.2818066999971,17415,4419,0.24050100147724152,0.3316621299394235,0.7258970737457275,42.88679659366608,solar_graphsage_lstm_fusion_graph_only_screen_20261027_010224_454614_seed42.keras,807.0
+graphsage_concat,concat,42,3.0,16.0,1.0,57,462.11389490000147,17415,4419,0.1681126058101654,0.25904618930892714,0.8327845931053162,29.67594265937805,solar_graphsage_lstm_fusion_concat_screen_20261027_010224_454614_seed42.keras,807.0
+graphsage_residual,residual,42,3.0,16.0,1.0,58,292.52530059999845,17415,4419,0.15826667845249176,0.24977949222684515,0.8445340394973755,27.9054194688797,solar_graphsage_lstm_fusion_residual_screen_20261027_010224_454614_seed42.keras,807.0

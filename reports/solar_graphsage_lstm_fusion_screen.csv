@@ -1,0 +1,5 @@
+model,variant,seed,k_neighbors,hidden_dimension,graphsage_depth,best_epoch,training_duration_seconds,train_sample_count,validation_sample_count,validation_mae,validation_rmse,validation_r2,validation_mape,checkpoint,validation_mape_excluded_zero_targets
+rolling_lstm_baseline,temporal_only,42,,,,59,210.2207335999992,17415,4419,0.1614727526903152,0.2521156851183015,0.8416122198104858,29.510757327079773,,
+graphsage_graph_only,graph_only,42,3.0,16.0,1.0,60,34.332510399995954,17415,4419,0.24051299691200256,0.3316916917320754,0.7258481979370117,42.88436770439148,solar_graphsage_lstm_fusion_graph_only_screen_seed42.keras,807.0
+graphsage_concat,concat,42,3.0,16.0,1.0,56,368.45753610000247,17415,4419,0.16354508697986603,0.2573232777413638,0.8350014686584473,29.38474714756012,solar_graphsage_lstm_fusion_concat_screen_seed42.keras,807.0
+graphsage_residual,residual,42,3.0,16.0,1.0,57,252.4032686999999,17415,4419,0.15759342908859253,0.25042576595336635,0.8437284827232361,28.890112042427063,solar_graphsage_lstm_fusion_residual_screen_seed42.keras,807.0

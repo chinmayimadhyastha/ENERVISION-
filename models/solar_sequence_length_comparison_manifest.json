@@ -1,0 +1,467 @@
+{
+  "experiment": "Controlled Solar LSTM sequence-length comparison",
+  "data_path": "D:\\member1-recovery\\data\\final\\full_generation_weather_dataset.csv",
+  "target": "DailyGeneration_MU",
+  "feature_columns_in_order": [
+    "Capacity_MW",
+    "Temperature",
+    "Humidity",
+    "WindSpeed",
+    "GHI",
+    "Pressure",
+    "Month_sin",
+    "Month_cos",
+    "DayOfYear_sin",
+    "DayOfYear_cos",
+    "Lagged_Generation",
+    "Rolling_Generation_7"
+  ],
+  "tested_sequence_lengths": [
+    7,
+    14,
+    21
+  ],
+  "model_architecture": "Input(window, 12) -> LSTM(64, return_sequences=True) -> Dropout(0.3) -> LSTM(32) -> Dropout(0.3) -> Dense(16, relu) -> Dense(1)",
+  "training_settings": {
+    "seed": 42,
+    "optimizer": "Nadam",
+    "learning_rate": 0.0001,
+    "loss": "mse",
+    "batch_size": 32,
+    "maximum_epochs": 60,
+    "shuffle": false,
+    "early_stopping": {
+      "monitor": "val_loss",
+      "patience": 15,
+      "restore_best_weights": true
+    },
+    "reduce_lr_on_plateau": {
+      "monitor": "val_loss",
+      "factor": 0.5,
+      "patience": 5,
+      "min_lr": 1e-06
+    }
+  },
+  "preprocessing": {
+    "source": "Reused from run_solar_lstm_attention_experiment.py",
+    "generation_clipping": "DailyGeneration_MU clipped at lower bound 0.0",
+    "lagged_generation": "Per-plant shift(1)",
+    "rolling_generation_7": "Per-plant shift(1).rolling(7, min_periods=7).mean()",
+    "scaler_fit_rows": 17618,
+    "scaler_fit_rule": "Feature and target StandardScaler fit on unchanged training rows only.",
+    "scaler_sha256": {
+      "feature": "b85ab0ef3d45aab6c44b679dd081fdf462650b15b8235c5b912333da2bb6fad8",
+      "target": "40a1f64853377cc6bd96f72736842b288dea1c084ca6bd4660136720b93a5ab5"
+    }
+  },
+  "split": {
+    "training_validation_cutoff_exclusive": "2026-01-01",
+    "validation_fraction_per_plant": 0.2,
+    "per_plant_boundaries": [
+      {
+        "plant": "ACME (KURUKSHETHRA)",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ACME (RIWARI)",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ADYAH BLOCK 1",
+        "train_start": "2020-06-04",
+        "train_end": "2021-10-20",
+        "validation_start": "2021-10-21",
+        "validation_end": "2022-05-05",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ADYAH BLOCK 10",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ADYAH BLOCK 13",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ADYAH BLOCK 2",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ADYAH BLOCK 3",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "ADYAH BLOCK 6",
+        "train_start": "2020-06-04",
+        "train_end": "2022-01-30",
+        "validation_start": "2022-01-31",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "AMPLUS PAVAGADA",
+        "train_start": "2024-07-07",
+        "train_end": "2025-09-20",
+        "validation_start": "2025-09-21",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "AMPLUS TUMKUR",
+        "train_start": "2024-07-07",
+        "train_end": "2025-09-20",
+        "validation_start": "2025-09-21",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "AVAADA SOLAR",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "AVAADA SOLARISE",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "AZURE POWER EARTH",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "FORTUM FIN SURYA",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "FORTUM SOLAR",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-04-23"
+      },
+      {
+        "plant": "GADAG_SERENTICA3_S",
+        "train_start": "2025-09-06",
+        "train_end": "2025-12-07",
+        "validation_start": "2025-12-08",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "GADAG_VENA_S",
+        "train_start": "2024-11-27",
+        "train_end": "2025-11-06",
+        "validation_start": "2025-11-07",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "IRCON SOLAR",
+        "train_start": "2025-04-06",
+        "train_end": "2025-11-17",
+        "validation_start": "2025-11-18",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "KOPPAL SRI1PL",
+        "train_start": "2024-09-20",
+        "train_end": "2025-10-05",
+        "validation_start": "2025-10-06",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "KOPPAL_KLEIO_S",
+        "train_start": "2025-06-16",
+        "train_end": "2025-11-27",
+        "validation_start": "2025-11-28",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "KOPPAL_RENEWOJAS_S",
+        "train_start": "2025-01-03",
+        "train_end": "2025-10-28",
+        "validation_start": "2025-10-29",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "KREDL",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "PARAMPUJYA",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "PVG_SPRING SOLAR INDIA( 5 * 50 )",
+        "train_start": "2025-09-06",
+        "train_end": "2025-12-07",
+        "validation_start": "2025-12-08",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "RENEW TN2",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "SBG ENERGY",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-03",
+        "validation_start": "2025-03-04",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "SIMHADRI SOLAR",
+        "train_start": "2022-03-07",
+        "train_end": "2022-06-14",
+        "validation_start": "2022-06-15",
+        "validation_end": "2022-07-07",
+        "test_start": null,
+        "test_end": null
+      },
+      {
+        "plant": "TATA RENEWABLES",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      },
+      {
+        "plant": "YARROW",
+        "train_start": "2020-06-04",
+        "train_end": "2025-03-02",
+        "validation_start": "2025-03-03",
+        "validation_end": "2025-12-31",
+        "test_start": "2026-01-01",
+        "test_end": "2026-08-05"
+      }
+    ],
+    "target_date_ranges": {
+      "train": {
+        "start": "2020-06-11",
+        "end": "2025-12-07"
+      },
+      "validation": {
+        "start": "2021-10-21",
+        "end": "2025-12-31"
+      },
+      "test": {
+        "start": "2026-01-01",
+        "end": "2026-08-05"
+      }
+    },
+    "validation_target_dates_identical_for_all_windows": true,
+    "test_target_dates_identical_for_all_windows": true,
+    "sample_counts_by_window": {
+      "7": {
+        "train": 17415,
+        "validation": 4419,
+        "test": 4236
+      },
+      "14": {
+        "train": 17212,
+        "validation": 4419,
+        "test": 4236
+      },
+      "21": {
+        "train": 17009,
+        "validation": 4419,
+        "test": 4236
+      }
+    }
+  },
+  "sequence_construction": {
+    "rule": "For target at row t, input features are rows [t-sequence_length, t); target row is excluded from input.",
+    "generation_features_use_only_prior_generation": true,
+    "validation_and_test_target_dates_preserved": true,
+    "training_sample_effect": "Increasing window length removes initial training targets that do not have enough preceding history; it does not move split boundaries."
+  },
+  "baseline_reference": {
+    "checkpoint": "D:\\member1-recovery\\models\\solar_lstm_rolling_7.keras",
+    "checkpoint_sha256_before_run": "344b1950ba5b7f0a5059a79ee13782e9fe0e2910d80bf3a10e491e8dfb25daad",
+    "recorded_metrics": {
+      "Validation_MAE": 0.1466990411281585,
+      "Validation_RMSE": 0.2431867198269814,
+      "Validation_R2": 0.8526325225830078,
+      "Test_MAE": 0.1402969360351562,
+      "Test_RMSE": 0.2340427507362728,
+      "Test_R2": 0.8674271106719971
+    },
+    "checkpoint_re_evaluated_with_train_only_scalers": {
+      "Validation_MAE": 0.14669904112815857,
+      "Validation_RMSE": 0.24318671982698142,
+      "Validation_R2": 0.8526325225830078
+    }
+  },
+  "metrics_by_sequence_length": {
+    "7": {
+      "validation": {
+        "MAE": 0.14669904112815857,
+        "RMSE": 0.24318671982698142,
+        "R2": 0.8526325225830078
+      },
+      "test": {
+        "MAE": 0.14029693603515625,
+        "RMSE": 0.23404275073627287,
+        "R2": 0.8674271106719971
+      }
+    },
+    "14": {
+      "validation": {
+        "MAE": 0.1638747602701187,
+        "RMSE": 0.25584021343667823,
+        "R2": 0.8368979096412659
+      },
+      "test": {
+        "MAE": 0.14515072107315063,
+        "RMSE": 0.24155390831496465,
+        "R2": 0.8587812185287476
+      }
+    },
+    "21": {
+      "validation": {
+        "MAE": 0.16063517332077026,
+        "RMSE": 0.25361102620599596,
+        "R2": 0.8397278189659119
+      },
+      "test": {
+        "MAE": 0.14228904247283936,
+        "RMSE": 0.24073702477213577,
+        "R2": 0.8597347736358643
+      }
+    }
+  },
+  "selection": {
+    "primary_metric": "validation R2",
+    "selected_sequence_length": 7,
+    "selected_model": "Solar LSTM (sequence length 7)",
+    "selected_checkpoint_validation_metrics_after_reload": {
+      "MAE": 0.14669904112815857,
+      "RMSE": 0.24318671982698142,
+      "R2": 0.8526325225830078
+    },
+    "selected_checkpoint_test_metrics_after_reload": {
+      "MAE": 0.14029693603515625,
+      "RMSE": 0.23404275073627287,
+      "R2": 0.8674271106719971
+    },
+    "test_metrics_not_used_for_selection": true
+  },
+  "artifacts": {
+    "per_sequence_length": {
+      "7": {
+        "checkpoint": "D:\\member1-recovery\\models\\solar_lstm_rolling_7.keras",
+        "feature_scaler": "D:\\member1-recovery\\models\\solar_sequence_length_7_feature_scaler.joblib",
+        "target_scaler": "D:\\member1-recovery\\models\\solar_sequence_length_7_target_scaler.joblib"
+      },
+      "14": {
+        "checkpoint": "D:\\member1-recovery\\models\\solar_lstm_sequence_14.keras",
+        "feature_scaler": "D:\\member1-recovery\\models\\solar_lstm_sequence_14_feature_scaler.joblib",
+        "target_scaler": "D:\\member1-recovery\\models\\solar_lstm_sequence_14_target_scaler.joblib"
+      },
+      "21": {
+        "checkpoint": "D:\\member1-recovery\\models\\solar_lstm_sequence_21.keras",
+        "feature_scaler": "D:\\member1-recovery\\models\\solar_lstm_sequence_21_feature_scaler.joblib",
+        "target_scaler": "D:\\member1-recovery\\models\\solar_lstm_sequence_21_target_scaler.joblib"
+      }
+    },
+    "selected_model": {
+      "checkpoint": "D:\\member1-recovery\\models\\solar_lstm_sequence_selected.keras",
+      "feature_scaler": "D:\\member1-recovery\\models\\solar_lstm_sequence_selected_feature_scaler.joblib",
+      "target_scaler": "D:\\member1-recovery\\models\\solar_lstm_sequence_selected_target_scaler.joblib"
+    },
+    "report": "D:\\member1-recovery\\reports\\solar_sequence_length_comparison.csv",
+    "manifest": "D:\\member1-recovery\\models\\solar_sequence_length_comparison_manifest.json"
+  },
+  "wind_artifact_sha256_before_run": {
+    "models\\solar_lstm_best_window.keras": "f1bc0185fd812a0c3a82e7a6e576eb8d370f8f4c64720acac823c7ca8460f750",
+    "models\\wind_lstm.keras": "375ca5b92abdc209f924703c6e9068bb7e42c0ac9fb1b4256039d4db1d94e758",
+    "models\\wind_scaler_features.joblib": "be156f5ff17593234ff41c77725bb755bec9d4a1df644946bc6a51468c525fa4",
+    "models\\wind_scaler_target.joblib": "6e04f1a18691ae437e02a8ca138ac6e039b627590c3b4c7a3dd7c3db31a81547",
+    "reports\\solar_lstm_window_experiments.csv": "bd41857ee93e4c585a13f45c5d0907a327a7f3506bc078bc5ace9867a1236283"
+  }
+}

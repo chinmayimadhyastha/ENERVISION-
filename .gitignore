@@ -1,7 +1,12 @@
-# Python
+# Python environments
 venv/
+.venv/
+.venv311/
+
+# Python cache
 __pycache__/
 *.pyc
+*.pyo
 
 # IDE
 .vscode/
@@ -10,6 +15,10 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Secrets
+.env
+.env.*
 
 # Large/raw source data
 data/generation/raw/
@@ -21,8 +30,7 @@ data/final/*
 !data/final/full_generation_weather_dataset.csv
 data/results/
 
-# Trained models
-models/*.pkl
-!models/random_forest_model.pkl
-
+# Plant-wise installed capacity source document
 Plant-wise details of RE Installed Capacity-merged.pdf
+
+models/random_forest_model.pkl

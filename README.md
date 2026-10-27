@@ -356,6 +356,53 @@ These outputs are refreshed whenever the Random Forest training script is execut
 
 ---
 
+## ☀️ Solar GraphSAGE + LSTM Experiment
+
+Run the fair comparison from PowerShell with the project environment:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\solar_graphsage_lstm_rolling_experiment.py
+```
+
+The experiment compares 11-feature Solar LSTM, 12-feature rolling Solar LSTM,
+and a 12-feature GraphSAGE + LSTM on identical plant/date samples. The graph is
+a symmetric union of top-10 cosine-similarity neighbors built from each plant's
+training-only feature profile; plants without training profiles remain isolated.
+Two mean-aggregation GraphSAGE layers produce spatial embeddings, which are
+fused with a 64/32-unit LSTM encoding of each plant's previous seven observations.
+Three fixed seeds are evaluated; validation metrics select the model and the
+test metrics are reported for final comparison only.
+
+The run writes a separate metrics report to
+`reports/solar_graphsage_lstm_rolling_experiment.csv`, and a Keras checkpoint,
+feature/target scalers, frozen graph, and training configuration with
+`solar_graphsage_lstm_rolling` prefixes under `models/`. It does not overwrite
+the existing Solar or Wind experiment artifacts.
+
+### GraphSAGE Fusion Ablation
+
+The next experiment tests GraphSAGE over every step of the seven-observation
+history, with graph-only, concatenation, and gated residual fusion. Run the
+single-seed validation screen first:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\solar_graphsage_lstm_fusion_experiment.py --stage screen
+```
+
+Only if the screen finds a candidate better than the rolling LSTM on both
+validation R² and MAE, run the three-seed validation confirmation:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\solar_graphsage_lstm_fusion_experiment.py --stage confirm
+```
+
+The confirmation evaluates the test set only after validation confirms the
+candidate in all three seeds. Reports, frozen graphs, scalers, and checkpoints
+use separate `solar_graphsage_lstm_fusion` names; timestamped screen and
+confirmation outputs avoid replacing earlier runs.
+
+---
+
 ## 📷 Results
 
 ### Actual vs Predicted
