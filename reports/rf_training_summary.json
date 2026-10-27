@@ -1,0 +1,69 @@
+{
+  "model": "Random Forest",
+  "status": "leakage_free_baseline",
+  "target": "DailyGeneration_MU",
+  "frequency": "daily",
+  "unit": "MU/day",
+  "split": "existing per-plant chronological 80/20 _split column",
+  "train_rows": 23268,
+  "test_rows": 5842,
+  "plants": 37,
+  "feature_count": 24,
+  "feature_order": [
+    "Capacity_MW",
+    "Temperature",
+    "Humidity",
+    "WindSpeed",
+    "GHI",
+    "Pressure",
+    "Temperature_lag_1",
+    "Humidity_lag_1",
+    "WindSpeed_lag_1",
+    "GHI_lag_1",
+    "Generation_lag_1",
+    "Generation_lag_2",
+    "Generation_lag_3",
+    "Generation_lag_7",
+    "Generation_roll_3",
+    "Generation_roll_7",
+    "Year",
+    "Month",
+    "DayOfYear",
+    "DayOfWeek",
+    "Month_sin",
+    "Month_cos",
+    "DayOfYear_sin",
+    "DayOfYear_cos"
+  ],
+  "removed_leakage_features": [
+    "Generation_per_MW"
+  ],
+  "hyperparameters": {
+    "n_estimators": 300,
+    "random_state": 42,
+    "n_jobs": -1,
+    "max_features": "sqrt",
+    "max_depth": null,
+    "min_samples_leaf": 1
+  },
+  "metrics": {
+    "MAE": 0.132150218240383,
+    "RMSE": 0.28278781980879913,
+    "R2": 0.8970816491056874
+  },
+  "predictions": {
+    "min": 0.0,
+    "max": 5.318799999999997,
+    "mean": 0.7858622598465953,
+    "negative_count": 0,
+    "finite": true
+  },
+  "feature_importance": {
+    "sum": 1.0,
+    "count": 24,
+    "report": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\reports\\generation_feature_importance.csv"
+  },
+  "artifact": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\models\\random_forest_model.pkl",
+  "metrics_report": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\reports\\generation_metrics_leakage_free.csv",
+  "note": "New leakage-free 24-feature baseline. Not comparable to the historical 25-feature Random Forest metrics because the feature contract changed."
+}

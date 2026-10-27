@@ -1,0 +1,42 @@
+{
+  "canonical_dataset": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\data\\final\\full_generation_weather_dataset.csv",
+  "rows_in": 29369,
+  "plants_in": 37,
+  "policy": {
+    "weather_sentinel_rule": "value <= -900 treated as missing (-999 is the NASA POWER sentinel)",
+    "weather_imputation": "per plant, chronological forward-fill then backward-fill",
+    "negative_generation_rule": "flag and clip DailyGeneration_MU to 0.0 for modelling",
+    "missing_identifier_rule": "drop rows without Date, PlantName, Type, Capacity_MW or target",
+    "invalid_capacity_rule": "drop rows with Capacity_MW <= 0",
+    "duplicate_rule": "drop duplicate (PlantName, Date, Capacity_MW), keep first"
+  },
+  "dropped_missing_identifier_or_target": 0,
+  "dropped_invalid_capacity": 0,
+  "dropped_duplicate_keys": 0,
+  "weather_sentinel_counts_before": {
+    "Temperature": 52,
+    "Humidity": 52,
+    "WindSpeed": 52,
+    "GHI": 104,
+    "Pressure": 52
+  },
+  "weather_sentinel_rows_before": 104,
+  "weather_values_imputed": 312,
+  "dropped_unrecoverable_weather": 0,
+  "negative_generation_rows": 0,
+  "mapping_status_row_counts": {
+    "Unmapped": 22688,
+    "Mapped": 6681
+  },
+  "rows_out": 29369,
+  "plants_out": 37,
+  "output": "C:\\Users\\259478\\Documents\\Default Project\\ENERVISION\\data\\final\\plant_weather_training_dataset.csv",
+  "date_range": {
+    "start": "2020-05-28",
+    "end": "2026-08-05"
+  },
+  "type_row_counts": {
+    "Solar": 26580,
+    "Wind": 2789
+  }
+}

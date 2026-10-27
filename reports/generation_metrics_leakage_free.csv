@@ -1,0 +1,2 @@
+Model,MAE,RMSE,R2,TrainRows,TestRows,Plants,Features,Target,Frequency
+"Random Forest (leakage-free, 24 features)",0.132150218240383,0.28278781980879913,0.8970816491056874,23268,5842,37,24,DailyGeneration_MU,daily
