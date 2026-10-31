@@ -35,10 +35,14 @@ class ForecastEntry:
     prediction: float
     raw_prediction: float
     clamp_applied: bool
-    confidence: None = None
+    confidence: dict | None = None
+    p10: float | None = None
+    p50: float | None = None
+    p90: float | None = None
     features: dict[str, float] | None = field(default=None, repr=False)
     sequence_shape: list[int] | None = field(default=None, repr=False)
     sequence_dates: list[str] | None = field(default=None, repr=False)
+    explanation: list[dict] | None = field(default=None, repr=False)
 
 
 @dataclass
@@ -77,6 +81,7 @@ class ForecastService:
         self.weather = weather_service
         self.feature_builder = feature_builder
         self.logger = logger or logging.getLogger("enervision.forecast")
+        self._cache = {}
 
     # ------------------------------------------------------------------ public
     def forecast(
@@ -88,6 +93,9 @@ class ForecastService:
         base_date: date | None = None,
         weather_provider=None,
     ) -> ForecastResult:
+        cache_key = (plant_id, model_requested, horizon, base_date, str(weather_provider))
+        if cache_key in self._cache:
+            return self._cache[cache_key]
         plant = self.data.require_plant(plant_id)
         model_id, model_family, lstm_type = self._resolve_model(plant, model_requested)
 
@@ -148,7 +156,7 @@ class ForecastService:
         fetch = self.weather.fetch_future(
             plant, required_dates, provider=weather_provider
         )
-        active_provider = weather_provider or self.weather.future_provider
+        active_provider = self.weather.resolve_provider(weather_provider) or weather_provider or self.weather.future_provider
 
         if fetch.missing:
             return ForecastResult(
@@ -266,14 +274,23 @@ class ForecastService:
                 previous_weather,
                 generation_history,
             )
-            prediction = self.models.predict_rf(vector)
+            prediction = self.models.predict_rf(
+                vector,
+                renewable_type=plant.type,
+                plant_capacity_mw=capacity_mw,
+            )
             entries.append(
                 ForecastEntry(
                     date=day,
                     prediction=prediction.served,
                     raw_prediction=prediction.raw,
                     clamp_applied=prediction.clamp_applied,
+                    confidence=prediction.confidence,
+                    p10=prediction.p10,
+                    p50=prediction.p50,
+                    p90=prediction.p90,
                     features=dict(zip(self.models.rf_features, vector)),
+                    explanation=prediction.explanation,
                 )
             )
             generation_history.append(prediction.served)
@@ -299,7 +316,7 @@ class ForecastService:
             ),
         }
 
-        return ForecastResult(
+        res = ForecastResult(
             status="ok",
             plant=plant,
             horizon_days=horizon,
@@ -321,6 +338,8 @@ class ForecastService:
             provider=provider,
             future_weather_available=provider_available,
         )
+        self._cache[(plant.plant_id, model_requested, horizon, base_date, str(provider))] = res
+        return res
 
     # ------------------------------------------------------------- LSTM branch
     def _forecast_lstm(
@@ -394,7 +413,11 @@ class ForecastService:
         last_date = base_date
 
         for step in range(horizon):
-            prediction = self.models.predict_lstm(lstm_type, sequence)
+            prediction = self.models.predict_lstm(
+                lstm_type,
+                sequence,
+                plant_capacity_mw=capacity_mw,
+            )
             predicted_date = last_date + timedelta(days=1)
             if predicted_date != forecast_dates[step]:
                 raise ApiError(
@@ -408,6 +431,10 @@ class ForecastService:
                     prediction=prediction.served,
                     raw_prediction=prediction.raw,
                     clamp_applied=prediction.clamp_applied,
+                    confidence=prediction.confidence,
+                    p10=prediction.p10,
+                    p50=prediction.p50,
+                    p90=prediction.p90,
                     sequence_shape=list(sequence.shape),
                     sequence_dates=list(sequence_dates),
                 )
@@ -454,7 +481,7 @@ class ForecastService:
             ),
         }
 
-        return ForecastResult(
+        res = ForecastResult(
             status="ok",
             plant=plant,
             horizon_days=horizon,
@@ -478,6 +505,8 @@ class ForecastService:
             provider=provider,
             future_weather_available=provider_available,
         )
+        self._cache[(plant.plant_id, model_requested, horizon, base_date, str(provider))] = res
+        return res
 
     # ------------------------------------------------------------------ helpers
     def _resolve_model(self, plant, model_requested: str):
@@ -545,7 +574,7 @@ class ForecastService:
             "Daily forecast only. Frequency is daily and the unit is MU/day.",
             "No hourly values are produced: no interpolation, division by 24, synthetic "
             "timestamps, or +3H/+6H/+12H/+24H outputs.",
-            "Confidence is null because no calibrated probabilistic forecasting model exists.",
+            "Confidence is null by default; calibrated quantiles (P10, P50, P90) are provided when requested.",
         ]
         if model_family == "lstm":
             notes.append(

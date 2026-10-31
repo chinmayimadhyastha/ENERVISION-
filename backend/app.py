@@ -33,6 +33,7 @@ def main() -> int:
         host=config.HOST,
         port=config.PORT,
         debug=config.DEBUG,
+        threaded=True,
         use_reloader=False,
     )
     return 0

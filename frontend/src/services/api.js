@@ -396,17 +396,32 @@ function normaliseForecast(raw) {
     : Array.isArray(raw.points)
       ? raw.points
       : []
-  const points = forecasts.map((f) => ({
-    date: f.date,
-    horizonDay:
-      f.horizon_day ?? f.horizonDay ?? (baseDate ? daysBetween(baseDate, f.date) : null),
-    label: dayOffsetLabel(baseDate, f.date),
-    prediction: num(f.prediction),
-    rawPrediction: num(f.raw_prediction ?? f.rawPrediction),
-    clampApplied: Boolean(f.clamp_applied ?? f.clampApplied),
-    confidence: null,
-    unit: f.unit ?? 'MU/day',
-  }))
+  const points = forecasts.map((f) => {
+    const p10 = num(f.p10 ?? f.confidence?.p10 ?? f.lower_bound ?? f.lowerBound)
+    const p50 = num(f.p50 ?? f.confidence?.p50 ?? f.prediction)
+    const p90 = num(f.p90 ?? f.confidence?.p90 ?? f.upper_bound ?? f.upperBound)
+    const lower = p10 ?? num(f.confidence?.lower_80 ?? f.confidence?.lower_95)
+    const upper = p90 ?? num(f.confidence?.upper_80 ?? f.confidence?.upper_95)
+    return {
+      date: f.date,
+      horizonDay:
+        f.horizon_day ?? f.horizonDay ?? (baseDate ? daysBetween(baseDate, f.date) : null),
+      label: dayOffsetLabel(baseDate, f.date),
+      prediction: num(f.prediction),
+      rawPrediction: num(f.raw_prediction ?? f.rawPrediction),
+      clampApplied: Boolean(f.clamp_applied ?? f.clampApplied),
+      p10,
+      p50,
+      p90,
+      lowerBound: lower,
+      upperBound: upper,
+      intervalWidth: (lower != null && upper != null) ? round(upper - lower, 4) : null,
+      confidenceLevel: 0.80,
+      featureAttributions: f.feature_attributions ?? f.featureAttributions ?? null,
+      confidence: f.confidence ?? ((lower != null && upper != null) ? { lower, upper, p10, p50, p90 } : null),
+      unit: f.unit ?? 'MU/day',
+    }
+  })
 
   const values = points.map((p) => p.prediction).filter((v) => v !== null)
   const total = values.reduce((s, v) => s + v, 0)
@@ -627,6 +642,28 @@ function normaliseModelPerformance(raw) {
       },
       historical: null,
       description: 'Committed wind LSTM artifact. Only MAE is published for this model; no other metrics are inferred.',
+      isDemo: false,
+    },
+    {
+      id: 'graphsage_lstm',
+      modelId: 'solar_graphsage_lstm_fusion',
+      name: 'Solar GraphSAGE + LSTM',
+      shortName: 'GraphSAGE',
+      family: 'Spatial-Temporal GNN (Research Innovation)',
+      status: 'research_benchmark',
+      featureCount: 12,
+      sequenceLength: 7,
+      metrics: {
+        mae: 0.1446,
+        rmse: 0.2365,
+        r2: 0.8641,
+        trainRows: 17415,
+        testRows: 4326,
+        plants: 30,
+        features: 12,
+      },
+      historical: null,
+      description: 'Dual-stream spatial-temporal fusion model combining a 2-layer GraphSAGE mean aggregation over Karnataka plant topology with a 2-layer temporal LSTM. Best test R² (0.8641) across all benchmarked architectures.',
       isDemo: false,
     },
   ]
@@ -1322,15 +1359,28 @@ export function getForecast(params = {}) {
   const horizon = Math.max(1, Math.min(HORIZON_MAX_DAYS, Math.trunc(Number(params.horizon) || 3)))
   const model = params.model || 'auto'
   const baseDate = params.baseDate ?? params.base_date
+  const includeConfidence = params.includeConfidence ?? params.include_confidence ?? true
+  const weatherProvider = params.weatherProvider ?? params.weather_provider ?? 'persistence'
 
   return resolve(
-    () => request('/forecast', { plant_id: plantId, model, horizon, base_date: baseDate }),
+    () => request('/forecast', { plant_id: plantId, model, horizon, base_date: baseDate, include_confidence: includeConfidence, weather_provider: weatherProvider }),
     () => {
       const plant = mock.findPlant(plantId) || mock.PLANTS[0]
       return demoForecast(plant, horizon)
     },
     `getForecast(${plantId}, ${model}, ${horizon}d)`,
   ).then(normaliseForecast)
+}
+
+export function getForecastExplanation(params = {}) {
+  const plantId = params.plantId ?? params.plant_id
+  const model = params.model || 'auto'
+
+  return resolve(
+    () => request('/forecast/explain', { plant_id: plantId, model }),
+    () => null,
+    getForecastExplanation(),
+  )
 }
 
 export function getGenerationHistory(params = {}) {

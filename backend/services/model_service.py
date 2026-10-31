@@ -16,6 +16,7 @@ import joblib
 import numpy as np
 import pandas as pd
 
+from backend.services.probabilistic_service import ProbabilisticService
 from backend.utils.errors import ApiError, ArtifactError
 
 os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
@@ -26,6 +27,11 @@ class RfPrediction:
     raw: float
     served: float
     clamp_applied: bool
+    confidence: dict | None = None
+    explanation: list[dict] | None = None
+    p10: float | None = None
+    p50: float | None = None
+    p90: float | None = None
 
 
 @dataclass(frozen=True)
@@ -33,6 +39,10 @@ class LstmPrediction:
     raw: float
     served: float
     clamp_applied: bool
+    confidence: dict | None = None
+    p10: float | None = None
+    p50: float | None = None
+    p90: float | None = None
 
 
 class ModelService:
@@ -56,6 +66,7 @@ class ModelService:
         self.solar_target_scaler = None
         self.wind_feature_scaler = None
         self.wind_target_scaler = None
+        self.probabilistic = ProbabilisticService(config, logger=self.logger)
         self.loaded = False
         self.load_durations: dict[str, float] = {}
 
@@ -65,6 +76,7 @@ class ModelService:
         self._load_random_forest()
         self._load_scalers()
         self._load_lstms()
+        self.probabilistic.load()
         self.loaded = True
         self.logger.info("All production model artifacts loaded and contract-validated.")
 
@@ -208,7 +220,12 @@ class ModelService:
         return model
 
     # -------------------------------------------------------------- inference
-    def predict_rf(self, features) -> RfPrediction:
+    def predict_rf(
+        self,
+        features,
+        renewable_type: str = "Solar",
+        plant_capacity_mw: float | None = None,
+    ) -> RfPrediction:
         if not self.loaded or self.rf is None:
             raise ApiError(
                 "MODEL_SERVICE_UNAVAILABLE",
@@ -242,9 +259,67 @@ class ModelService:
                 500,
             )
         served = max(raw, 0.0)
-        return RfPrediction(raw=raw, served=served, clamp_applied=raw < 0.0)
 
-    def predict_lstm(self, renewable_type: str, sequence) -> LstmPrediction:
+        # Calibrated Quantile Regression (P10, P50, P90)
+        prob = self.probabilistic.predict_quantiles(
+            features=vector,
+            feature_names=self.rf_features,
+            renewable_type=renewable_type,
+            plant_capacity_mw=plant_capacity_mw,
+            point_prediction=served,
+        )
+        confidence = prob.as_confidence_dict()
+        tree_preds = np.array([tree.predict(vector.reshape(1, -1))[0] for tree in self.rf.estimators_])
+        confidence["std_dev"] = round(float(np.std(tree_preds)), 4)
+
+        # Local tree-based explainability (feature contribution decomposition)
+        explanation = self.explain_rf_prediction(vector)
+
+        return RfPrediction(
+            raw=raw,
+            served=served,
+            clamp_applied=raw < 0.0,
+            confidence=confidence,
+            explanation=explanation,
+            p10=prob.p10,
+            p50=prob.p50,
+            p90=prob.p90,
+        )
+
+    def explain_rf_prediction(self, features) -> list[dict]:
+        """Compute local feature contributions across all decision trees in the random forest."""
+        vector = np.asarray(features, dtype=float).reshape(1, -1)
+        contributions = np.zeros(len(self.rf_features))
+
+        for tree in self.rf.estimators_:
+            t = tree.tree_
+            nodes = tree.decision_path(vector).indices
+            for i in range(len(nodes) - 1):
+                curr_node, next_node = nodes[i], nodes[i + 1]
+                contributions[t.feature[curr_node]] += (t.value[next_node][0][0] - t.value[curr_node][0][0])
+        contributions /= len(self.rf.estimators_)
+
+        ranked_indices = np.argsort(-np.abs(contributions))
+        explanations = []
+        for rank, idx in enumerate(ranked_indices, start=1):
+            feat_name = self.rf_features[idx]
+            val = float(vector[0, idx])
+            contrib = float(contributions[idx])
+            explanations.append({
+                "feature": feat_name,
+                "value": round(val, 4),
+                "impact": round(contrib, 4),
+                "direction": "positive" if contrib >= 0 else "negative",
+                "rank": rank,
+            })
+        return explanations
+
+    def predict_lstm(
+        self,
+        renewable_type: str,
+        sequence,
+        plant_capacity_mw: float | None = None,
+    ) -> LstmPrediction:
         if not self.loaded:
             raise ApiError(
                 "MODEL_SERVICE_UNAVAILABLE",
@@ -292,7 +367,28 @@ class ModelService:
         # Serving-layer physical constraint.  The neural network is not
         # constrained to non-negative outputs; the raw value is preserved.
         served = max(raw, 0.0)
-        return LstmPrediction(raw=raw, served=served, clamp_applied=raw < 0.0)
+
+        # Calibrated Probabilistic Quantiles (P10, P50, P90)
+        prob = self.probabilistic.predict_quantiles(
+            features=None,
+            feature_names=[],
+            renewable_type=renewable_type,
+            plant_capacity_mw=plant_capacity_mw,
+            point_prediction=served,
+        )
+        confidence = prob.as_confidence_dict()
+        rmse = 0.2346 if renewable_type.lower() == "solar" else 1.0040
+        confidence["std_dev"] = round(rmse, 4)
+
+        return LstmPrediction(
+            raw=raw,
+            served=served,
+            clamp_applied=raw < 0.0,
+            confidence=confidence,
+            p10=prob.p10,
+            p50=prob.p50,
+            p90=prob.p90,
+        )
 
     def _lstm_bundle(self, renewable_type: str):
         key = str(renewable_type).strip().lower()

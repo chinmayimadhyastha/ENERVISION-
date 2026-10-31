@@ -98,7 +98,10 @@ class Config:
 
         # A real future-weather provider is deliberately not wired in.  The
         # weather service is the single extension point when one is added.
-        self.FUTURE_WEATHER_PROVIDER = "unavailable"
+                # A real future-weather provider is configurable (e.g. open-meteo).
+        self.FUTURE_WEATHER_PROVIDER = os.environ.get("FUTURE_WEATHER_PROVIDER", "unavailable")
+        self.DATABASE_URL = os.environ.get("DATABASE_URL")
+        self.REPO_ROOT = PROJECT_ROOT
 
         if overrides:
             for key, value in overrides.items():

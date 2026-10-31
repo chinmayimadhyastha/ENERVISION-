@@ -16,6 +16,7 @@ joblib==1.4.2
 tensorflow==2.19.0
 keras==3.10.0
 h5py==3.16.0
+shap==0.51.0
 
 # Reporting / scripts
 matplotlib==3.9.2
@@ -27,6 +28,7 @@ openpyxl==3.1.5
 # Backend REST API (daily forecasting only)
 Flask==3.1.3
 Flask-CORS==6.0.5
+SQLAlchemy==2.0.36
 
 # Backend tests
 pytest==8.4.2

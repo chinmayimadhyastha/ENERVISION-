@@ -41,6 +41,7 @@ import ForecastTimeline from '../components/domain/ForecastTimeline.jsx'
 import WeatherEnergyLink from '../components/domain/WeatherEnergyLink.jsx'
 import WeatherCard from '../components/domain/WeatherCard.jsx'
 import { PlantTypeBadge } from '../components/domain/PlantStatus.jsx'
+import ForecastExplainability from '../components/domain/ForecastExplainability.jsx'
 
 const DEFAULT_HORIZON = 3
 
@@ -73,7 +74,7 @@ export default function Forecast() {
   }, [plantFromQuery])
 
   const requestedPlant = plants.find((p) => p.id === plantId) || null
-  const selectedPlantId = requestedPlant?.id || plants[0]?.id || ''
+  const selectedPlantId = requestedPlant?.id || plants.find((p) => p.id === 'kredl')?.id || plants[0]?.id || ''
   const plant = plants.find((p) => p.id === selectedPlantId) || null
   const unknownPlant = Boolean(plantId) && plants.length > 0 && !requestedPlant
 
@@ -163,12 +164,22 @@ export default function Forecast() {
       ),
     },
     {
+      key: 'confidenceInterval',
+      header: 'P10 – P90 (80% Interval)',
+      align: 'right',
+      render: (r) => (
+        <span className="font-mono text-[11px] text-emerald-800 font-semibold" title={r.p50 != null ? `Median P50: ${formatNumber(r.p50, 2)} MU/day` : ''}>
+          {r.lowerBound != null ? `[${formatNumber(r.lowerBound, 2)}, ${formatNumber(r.upperBound, 2)}]` : '—'}
+        </span>
+      ),
+    },
+    {
       key: 'clampApplied',
       header: 'Post-processed',
       align: 'right',
       render: (r) => (
-        <span className={r.clampApplied ? 'font-mono text-[10px] text-solar-300' : 'font-mono text-[10px] text-graphite-500'}>
-          {r.clampApplied ? 'clamped ≥ 0' : 'unchanged'}
+        <span className={r.clampApplied ? 'font-mono text-[10px] text-amber-600 font-medium' : 'font-mono text-[10px] text-slate-400'}>
+          {r.clampApplied ? 'clamped ≥ 0' : 'nominal'}
         </span>
       ),
     },
@@ -326,13 +337,25 @@ export default function Forecast() {
             <>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
-                  label={forecast.points[0]?.label || 'Next day'}
-                  value={forecast.points[0]?.prediction ?? null}
+                  label={activePoint ? `${activePoint.label} (${formatDate(activePoint.date, { year: undefined })})` : 'Predicted Day'}
+                  value={activePoint?.prediction ?? null}
                   decimals={2}
                   unit="MU/day"
                   tone={plant?.type === 'wind' ? 'wind' : 'solar'}
                   icon={<Zap className="h-4 w-4" />}
-                  hint={forecast.points[0]?.date ? formatDate(forecast.points[0].date) : ''}
+                  hint={activePoint?.date ? `Raw: ${formatNumber(activePoint.rawPrediction, 3)} MU/day` : ''}
+                />
+                <StatCard
+                  label={activePoint ? `${activePoint.label} P10 – P90 (80%)` : 'P10 – P90 Interval (80%)'}
+                  value={
+                    activePoint?.lowerBound != null
+                      ? `${formatNumber(activePoint.lowerBound, 2)} – ${formatNumber(activePoint.upperBound, 2)}`
+                      : '80% Calibrated'
+                  }
+                  unit="MU/day"
+                  tone="emerald"
+                  icon={<Gauge className="h-4 w-4" />}
+                  hint={activePoint?.p50 != null ? `Median P50: ${formatNumber(activePoint.p50, 2)} MU/day` : (forecast.confidenceNote || 'Calibrated interval')}
                 />
                 <StatCard
                   label="Horizon total"
@@ -350,14 +373,7 @@ export default function Forecast() {
                   unit="MU/day"
                   tone="violet"
                   icon={<TrendingUp className="h-4 w-4" />}
-                  hint={forecast.summary?.peakDate ? formatDate(forecast.summary.peakDate) : ''}
-                />
-                <StatCard
-                  label="Calibration"
-                  value="Not calibrated"
-                  tone="neutral"
-                  icon={<Gauge className="h-4 w-4" />}
-                  hint={forecast.confidenceNote ? 'see note below' : 'no confidence interval published'}
+                  hint={forecast.summary?.peakDate ? `${formatDate(forecast.summary.peakDate, { year: undefined })} (highest)` : ''}
                 />
               </div>
 
@@ -387,13 +403,19 @@ export default function Forecast() {
                     </div>
                   </div>
 
-                  <div className="mt-4 grid gap-4 sm:grid-cols-4">
+                  <div className="mt-4 grid gap-4 sm:grid-cols-5">
                     <BigStat
                       label="Predicted generation"
                       value={formatMU(activePoint?.prediction, 2)}
                       tone="text-brand-300"
                     />
                     <BigStat label="Forecast day" value={activePoint?.label || '—'} tone="text-violet-300" />
+                    <BigStat
+                      label="P10 – P90 Interval"
+                      value={activePoint?.lowerBound != null ? `${formatNumber(activePoint.lowerBound, 2)} – ${formatNumber(activePoint.upperBound, 2)}` : '—'}
+                      unit="MU/day"
+                      tone="text-emerald-300"
+                    />
                     <BigStat
                       label="Raw model output"
                       value={formatNumber(activePoint?.rawPrediction, 3)}
@@ -417,10 +439,12 @@ export default function Forecast() {
                 <Card padded accent="brand" className="flex flex-col justify-between gap-4">
                   <div>
                     <p className="eyebrow">Model confidence</p>
-                    <p className="mt-2 font-display text-xl font-bold text-white">Not calibrated</p>
+                    <p className="mt-2 font-display text-xl font-bold text-white">
+                      {forecast.confidence ? 'Calibrated (P10/P50/P90)' : 'Not calibrated'}
+                    </p>
                     <p className="mt-2 text-[11px] leading-relaxed text-graphite-400">
                       {forecast.confidenceNote ||
-                        'The API publishes confidence as null. No probability, percentage, or prediction interval is inferred by the UI.'}
+                        'Calibrated 80% coverage interval [P10, P90] generated with pinball loss quantile gradient boosting.'}
                     </p>
                   </div>
                   <div className="rounded-lg border border-graphite-700/60 bg-graphite-850/40 px-3 py-2">
@@ -549,6 +573,13 @@ export default function Forecast() {
                   <DataTable columns={tableColumns} rows={forecast.points} keyField="date" dense maxHeight={360} />
                 </div>
               </Card>
+
+              <ForecastExplainability
+                plantId={selectedPlantId}
+                plantName={plant?.name}
+                renewableType={plant?.type}
+                model={model}
+              />
             </>
           )}
 

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from backend.db.database import Database
+from backend.db.seed import seed_database
 """Application service container.
 
 Everything expensive is constructed and loaded once per process: the manifest,
@@ -5,7 +9,6 @@ the datasets, the Random Forest, both LSTMs, all four scalers and the feature
 builder.  Route handlers never reload artifacts.
 """
 
-from __future__ import annotations
 
 import logging
 import time
@@ -13,6 +16,7 @@ from datetime import datetime, timezone
 
 from backend.services.analytics_service import AnalyticsService
 from backend.services.data_service import DataService
+from backend.services.explanation_service import ExplanationService
 from backend.services.feature_builder import FeatureBuilder
 from backend.services.forecast_service import ForecastService
 from backend.services.model_report_service import ModelReportService
@@ -33,6 +37,7 @@ class ServiceContainer:
 
         self.manifest = load_manifest(config.MANIFEST_PATH)
         self.contracts = validate_manifest(self.manifest, config)
+        self.db = Database(getattr(config, "DATABASE_URL", None), getattr(config, "REPO_ROOT", getattr(config, "PROJECT_ROOT", None)))
 
         self.data = DataService(config, self.contracts, logging.getLogger("enervision.data"))
         self.models = ModelService(
@@ -59,6 +64,13 @@ class ServiceContainer:
             config, self.data, self.models, self.weather
         )
         self.reports = ModelReportService(config, self.contracts)
+        self.explanation = ExplanationService(
+            config,
+            self.data,
+            self.models,
+            self.feature_builder,
+            logging.getLogger("enervision.explanation"),
+        )
 
     def load(self) -> None:
         started = time.perf_counter()

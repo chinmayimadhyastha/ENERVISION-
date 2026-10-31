@@ -33,3 +33,10 @@ Plant-wise details of RE Installed Capacity-merged.pdf
 
 # Local Python environment
 .venv/
+
+# SQLite database
+*.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/

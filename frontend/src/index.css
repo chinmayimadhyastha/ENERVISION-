@@ -4,11 +4,11 @@
 
 @layer base {
   :root {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   * {
-    @apply border-graphite-700;
+    @apply border-slate-200;
   }
 
   html {
@@ -17,12 +17,12 @@
   }
 
   body {
-    @apply bg-graphite-950 font-sans text-graphite-200 antialiased;
+    @apply bg-slate-50 font-sans text-slate-800 antialiased;
     text-rendering: optimizeLegibility;
     background-image:
-      radial-gradient(1100px 620px at 78% -8%, rgba(20, 184, 166, 0.10), transparent 60%),
-      radial-gradient(900px 520px at 8% 4%, rgba(6, 182, 212, 0.07), transparent 58%),
-      radial-gradient(760px 460px at 50% 108%, rgba(245, 158, 11, 0.05), transparent 60%);
+      radial-gradient(1100px 620px at 78% -8%, rgba(15, 118, 110, 0.04), transparent 60%),
+      radial-gradient(900px 520px at 8% 4%, rgba(6, 182, 212, 0.03), transparent 58%),
+      radial-gradient(760px 460px at 50% 108%, rgba(245, 158, 11, 0.03), transparent 60%);
     background-attachment: fixed;
   }
 
@@ -30,65 +30,63 @@
   h2,
   h3,
   h4 {
-    @apply font-display text-white;
+    @apply font-display text-slate-900;
     letter-spacing: -0.018em;
   }
 
   ::selection {
-    @apply bg-brand-400/30 text-white;
+    @apply bg-emerald-100 text-emerald-900;
   }
 
-  /* Dark, slim scrollbars everywhere. */
+  /* Light, slim scrollbars */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(92, 112, 128, 0.5) transparent;
+    scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
   }
   *::-webkit-scrollbar {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
   }
   *::-webkit-scrollbar-track {
     background: transparent;
   }
   *::-webkit-scrollbar-thumb {
-    background-color: rgba(92, 112, 128, 0.4);
+    background-color: rgba(148, 163, 184, 0.4);
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
   *::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(132, 150, 165, 0.6);
+    background-color: rgba(100, 116, 139, 0.6);
   }
 }
 
 @layer components {
   /* ---- Surfaces ---------------------------------------------------------- */
   .panel {
-    @apply relative rounded-xl border border-graphite-700/80 bg-graphite-900/80;
-    box-shadow:
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.03),
-      0 10px 30px -20px rgba(0, 0, 0, 0.9);
+    @apply relative rounded-xl border border-slate-200 bg-white;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
   }
 
   .panel-alt {
-    @apply relative rounded-xl border border-graphite-700/70 bg-graphite-850/70;
+    @apply relative rounded-xl border border-slate-200/80 bg-slate-50;
   }
 
   .panel-interactive {
-    @apply transition-all duration-300 ease-smooth hover:border-graphite-600 hover:bg-graphite-850/85;
+    @apply transition-all duration-200 ease-in-out hover:border-slate-300 hover:shadow-md;
   }
 
   .hairline {
-    @apply border-graphite-700/70;
+    @apply border-slate-200;
   }
 
   /* ---- Typography helpers ----------------------------------------------- */
   .eyebrow {
-    @apply font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-graphite-400;
+    @apply font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500;
   }
 
   .metric-value {
-    @apply font-display font-bold tabular-nums text-white;
+    @apply font-display font-bold tabular-nums text-slate-900;
   }
 
   .tabular {
@@ -97,43 +95,42 @@
 
   /* ---- Inputs ------------------------------------------------------------ */
   .ev-input {
-    @apply w-full rounded-lg border border-graphite-650 bg-graphite-900/80 px-3 py-2 text-sm text-graphite-100
-      outline-none transition placeholder:text-graphite-400
-      focus:border-brand-500/70 focus:ring-2 focus:ring-brand-500/20;
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800
+      outline-none transition placeholder:text-slate-400
+      focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600;
   }
 
   .ev-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgba(92, 112, 128, 0.45) transparent;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
   }
 
   /* ---- Patterns / texture ----------------------------------------------- */
   .ev-grid {
     background-image:
-      linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+      linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
     background-size: 28px 28px;
   }
 
   .ev-grid-sm {
     background-image:
-      linear-gradient(to right, rgba(148, 163, 184, 0.055) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(148, 163, 184, 0.055) 1px, transparent 1px);
+      linear-gradient(to right, rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
     background-size: 14px 14px;
   }
 
   .ev-dotgrid {
-    background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(148, 163, 184, 0.18) 1px, transparent 1px);
     background-size: 18px 18px;
   }
 
-  /* Radial contour lines — topographic / radar feel. */
   .ev-contour {
     background-image:
       repeating-radial-gradient(
         circle at 50% 42%,
-        rgba(45, 212, 191, 0.055) 0,
-        rgba(45, 212, 191, 0.055) 1px,
+        rgba(15, 118, 110, 0.05) 0,
+        rgba(15, 118, 110, 0.05) 1px,
         transparent 1px,
         transparent 46px
       );
@@ -153,7 +150,7 @@
     background-image: linear-gradient(
       90deg,
       rgba(255, 255, 255, 0) 0,
-      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.4) 50%,
       rgba(255, 255, 255, 0) 100%
     );
     animation: shimmer 1.8s infinite;
@@ -171,13 +168,19 @@
   .text-balance {
     text-wrap: balance;
   }
-  .mask-fade-y {
-    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+
+  /* Public sector light portal text visibility */
+  .panel .text-white:not(.keep-white),
+  header .text-white:not(.keep-white),
+  main .text-white:not(.keep-white):not(.portal-hero *),
+  footer .text-white:not(.keep-white) {
+    color: #0f172a;
   }
-  .mask-fade-x {
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+
+  .portal-hero .text-white,
+  .portal-hero h2,
+  .portal-hero button {
+    color: #ffffff !important;
   }
 }
 

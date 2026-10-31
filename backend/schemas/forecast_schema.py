@@ -5,7 +5,7 @@ The response surface is deliberately explicit about:
 * daily frequency and ``MU/day`` units;
 * the difference between ``raw_prediction`` and the physically served
   ``prediction = max(raw_prediction, 0)``;
-* ``confidence: null`` because no calibrated probabilistic model exists;
+* ``confidence: null`` by default unless requested;
 * exactly which weather inputs are missing when a forecast cannot be produced.
 """
 
@@ -16,7 +16,7 @@ from backend.utils.serialization import iso_date
 
 CONFIDENCE_NOTE = (
     "No calibrated probabilistic forecasting model exists for these artifacts, so no "
-    "confidence interval or probability is reported. The value is null rather than invented."
+    "confidence interval or probability is reported by default. The value is null rather than invented."
 )
 
 
@@ -59,7 +59,7 @@ def _input_contract(result, config) -> dict:
     }
 
 
-def serialize_forecast(result, config) -> dict:
+def serialize_forecast(result, config, include_confidence: bool = False, include_explanation: bool = False) -> dict:
     forecasts = []
     for index, entry in enumerate(result.entries, start=1):
         item = {
@@ -70,11 +70,23 @@ def serialize_forecast(result, config) -> dict:
             "prediction": entry.prediction,
             "raw_prediction": entry.raw_prediction,
             "clamp_applied": entry.clamp_applied,
-            "confidence": entry.confidence,
+            "confidence": entry.confidence if include_confidence else None,
         }
+        if getattr(entry, "p10", None) is not None:
+            item["p10"] = entry.p10
+            item["p50"] = entry.p50
+            item["p90"] = entry.p90
         if entry.features is not None:
             item["features"] = dict(entry.features)
+        if include_explanation and getattr(entry, "explanation", None) is not None:
+            item["explanation"] = entry.explanation
         forecasts.append(item)
+
+    top_confidence = None
+    confidence_note = CONFIDENCE_NOTE
+    if include_confidence and forecasts and forecasts[0].get("confidence"):
+        top_confidence = forecasts[0]["confidence"]
+        confidence_note = top_confidence.get("description", CONFIDENCE_NOTE)
 
     payload = {
         "status": result.status,
@@ -88,8 +100,8 @@ def serialize_forecast(result, config) -> dict:
         "plant": result.plant.as_dict(),
         "base_date": iso_date(result.base_date),
         "forecast_dates": [day.isoformat() for day in result.forecast_dates],
-        "confidence": None,
-        "confidence_note": CONFIDENCE_NOTE,
+        "confidence": top_confidence,
+        "confidence_note": confidence_note,
         "input_contract": _input_contract(result, config),
         "future_weather": {
             "provider": result.provider,
@@ -99,44 +111,34 @@ def serialize_forecast(result, config) -> dict:
                 result.model_family == "random_forest"
                 or result.horizon_days > 1
             ),
-            "required_for_this_request": bool(
-                result.required_weather
-                and result.required_weather.get("dates")
-            )
-            or (
-                result.status == "ok"
-                and (
-                    result.model_family == "random_forest"
-                    or result.horizon_days > 1
-                )
-            ),
+            "required_for_this_request": bool(result.required_weather),
         },
         "post_processing": _post_processing(result.entries),
         "forecast_count": len(forecasts),
         "forecasts": forecasts,
+        "forecast": forecasts,
         "history_context": result.history_context,
         "notes": list(result.notes),
     }
 
-    if result.required_weather is not None:
+    if result.status == "weather_required":
         payload["required_weather"] = result.required_weather
-    if result.missing_weather:
-        payload["missing_weather"] = list(result.missing_weather)
+        payload["missing_weather"] = result.missing_weather
         payload["missing_weather_summary"] = {
-            "dates": [item["date"] for item in result.missing_weather],
+            "dates": [day.isoformat() for day in result.forecast_dates],
             "inputs": list(WEATHER_FIELDS),
             "count": len(result.missing_weather),
         }
-    if result.insufficient_history is not None:
+        payload["reason"] = (
+            "Required weather is unavailable. No prediction was generated and no weather value "
+            "was fabricated or reused from another date."
+        )
+
+    if result.status == "insufficient_history":
         payload["insufficient_history"] = result.insufficient_history
-    if result.status == "weather_required":
         payload["reason"] = (
-            "Required weather is unavailable. No prediction was generated and no "
-            "weather value was fabricated or reused from another date."
+            "The plant does not have enough preceding observations to build the model input. "
+            "No prediction was generated."
         )
-    elif result.status == "insufficient_history":
-        payload["reason"] = (
-            "The plant does not have enough preceding observations to build the model "
-            "input. No prediction was generated."
-        )
+
     return payload

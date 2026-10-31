@@ -66,7 +66,7 @@ export default function Plants() {
     let out = rows
     if (q) {
       out = out.filter((p) =>
-        [p.name, p.district, p.id, p.owner, p.state]
+        [p.name, p.district, p.id, p.owner, p.state, p.type]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(q)),
       )

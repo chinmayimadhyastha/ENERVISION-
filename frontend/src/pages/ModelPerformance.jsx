@@ -40,6 +40,7 @@ import LoadingState from '../components/ui/LoadingState.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import DataTable from '../components/ui/DataTable.jsx'
 import { ChartTooltip, ChartLegend } from '../components/charts/index.js'
+import GraphSageResearch from '../components/domain/GraphSageResearch.jsx'
 
 const FEATURE_METHOD_LABEL = 'Random Forest impurity'
 
@@ -47,6 +48,7 @@ const MODEL_ACCENTS = {
   random_forest: 'brand',
   solar_lstm: 'solar',
   wind_lstm: 'wind',
+  graphsage_lstm: 'solar',
 }
 
 /** Committed model metrics from /api/model-performance and Random Forest
@@ -381,6 +383,9 @@ export default function ModelPerformance() {
           <DataTable columns={modelColumns} rows={models} keyField="id" maxHeight={360} />
         </div>
       </Card>
+
+      {/* ---------------------------------- Spatial-Temporal GraphSAGE Showcase --- */}
+      <GraphSageResearch />
 
       {/* ------------------------------------------------- Model inspector --- */}
       <section className="space-y-4">

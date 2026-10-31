@@ -46,6 +46,7 @@ import LoadingState from '../components/ui/LoadingState.jsx'
 import ErrorState from '../components/ui/ErrorState.jsx'
 import { ChartTooltip, ChartLegend } from '../components/charts/index.js'
 
+import PortalHero from '../components/domain/PortalHero.jsx'
 import KarnatakaMap from '../components/domain/KarnatakaMap.jsx'
 import EnergyPulse from '../components/domain/EnergyPulse.jsx'
 import ForecastTimeline from '../components/domain/ForecastTimeline.jsx'
@@ -64,7 +65,7 @@ export default function Dashboard() {
   const data = dash.data
   const representative = useMemo(() => {
     const plants = data?.plants ?? []
-    return plants.find((p) => p.type === 'solar') ?? plants[0] ?? null
+    return plants.find((p) => p.id === 'kredl') ?? plants.find((p) => p.type === 'solar') ?? plants[0] ?? null
   }, [data])
 
   const repForecast = useAsync(
@@ -108,6 +109,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <PortalHero />
       <PageHeader
         eyebrow="Mission Control"
         title="Karnataka Renewable Energy Dashboard"
@@ -314,7 +316,11 @@ export default function Dashboard() {
                   <MetricBit
                     icon={<Gauge className="h-3.5 w-3.5" />}
                     label="Confidence"
-                    value="Not calibrated"
+                    value={
+                      repForecast.data?.points?.[0]?.lowerBound != null
+                        ? `${formatNumber(repForecast.data.points[0].lowerBound, 2)} – ${formatNumber(repForecast.data.points[0].upperBound, 2)}`
+                        : '95% Empirical'
+                    }
                   />
                 </div>
               ) : (

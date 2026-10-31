@@ -1,0 +1,80 @@
+{
+  "method": "Conformalized Quantile Regression with Pinball Loss",
+  "quantiles": [
+    0.1,
+    0.5,
+    0.9
+  ],
+  "features": [
+    "Capacity_MW",
+    "Temperature",
+    "Humidity",
+    "WindSpeed",
+    "GHI",
+    "Pressure",
+    "Temperature_lag_1",
+    "Humidity_lag_1",
+    "WindSpeed_lag_1",
+    "GHI_lag_1",
+    "Generation_lag_1",
+    "Generation_lag_2",
+    "Generation_lag_3",
+    "Generation_lag_7",
+    "Generation_roll_3",
+    "Generation_roll_7",
+    "Year",
+    "Month",
+    "DayOfYear",
+    "DayOfWeek",
+    "Month_sin",
+    "Month_cos",
+    "DayOfYear_sin",
+    "DayOfYear_cos"
+  ],
+  "results": {
+    "solar": {
+      "calib_offset": 5.2433880126814085e-05,
+      "train_samples": 16854,
+      "val_samples": 4226,
+      "test_samples": 5290,
+      "validation_coverage": 0.8156649313771889,
+      "validation_width": 0.3826131461376658,
+      "validation_pinball_loss": {
+        "p10": 0.02917369444545252,
+        "p50": 0.055182363397334004,
+        "p90": 0.03571978958463979,
+        "mean": 0.04002528247580877
+      },
+      "test_coverage": 0.8136105860113422,
+      "test_width": 0.387751325668821,
+      "test_pinball_loss": {
+        "p10": 0.02842249265969178,
+        "p50": 0.05298263792805147,
+        "p90": 0.028101959036545568,
+        "mean": 0.03650236320809627
+      }
+    },
+    "wind": {
+      "calib_offset": 0.0777916926003807,
+      "train_samples": 1748,
+      "val_samples": 440,
+      "test_samples": 552,
+      "validation_coverage": 0.8090909090909091,
+      "validation_width": 0.8412925740537792,
+      "validation_pinball_loss": {
+        "p10": 0.05007460229648547,
+        "p50": 0.13026902487039232,
+        "p90": 0.07705748720453583,
+        "mean": 0.08580037145713787
+      },
+      "test_coverage": 0.7210144927536232,
+      "test_width": 1.1284581936152016,
+      "test_pinball_loss": {
+        "p10": 0.09198247064696083,
+        "p50": 0.215258661093075,
+        "p90": 0.13719069332745182,
+        "mean": 0.14814394168916256
+      }
+    }
+  }
+}

@@ -1,0 +1,746 @@
+{
+  "timestamp": "2026-10-27T10:01:01Z",
+  "python_version": "3.11.7 | packaged by Anaconda, Inc. | (main, Dec 15 2023, 18:05:47) [MSC v.1916 64 bit (AMD64)]",
+  "results": {
+    "startup": {
+      "status": "SUCCESS",
+      "init_time_seconds": 27.951,
+      "database_engine": "sqlite:///C:/Users/barsa/.gemini/antigravity/scratch/enervision/data/enervision.db",
+      "models_loaded": [
+        "random_forest",
+        "solar_lstm",
+        "wind_lstm",
+        "solar_feature_scaler",
+        "solar_target_scaler",
+        "wind_feature_scaler",
+        "wind_target_scaler"
+      ],
+      "plants_loaded_count": 37
+    },
+    "health": {
+      "status_code": 200,
+      "data": {
+        "status": "ok",
+        "service": "ENERVISION daily forecasting API",
+        "api_version": "1.0.0",
+        "loaded": true,
+        "loaded_at": "2026-10-27T10:01:29.461876+00:00",
+        "startup_duration_seconds": 27.86,
+        "forecasting_contract": {
+          "frequency": "daily",
+          "target": "DailyGeneration_MU",
+          "unit": "MU/day",
+          "horizon": "future days",
+          "default_horizon_days": 3,
+          "max_horizon_days": 7,
+          "hourly_forecasting": false
+        },
+        "models": {
+          "random_forest": "loaded",
+          "solar_lstm": "loaded",
+          "wind_lstm": "loaded",
+          "solar_feature_scaler": "loaded",
+          "solar_target_scaler": "loaded",
+          "wind_feature_scaler": "loaded",
+          "wind_target_scaler": "loaded"
+        },
+        "data": {
+          "rows": 29369,
+          "plants": 37,
+          "feature_rows": 29110,
+          "date_range": {
+            "start": "2020-05-28",
+            "end": "2026-08-05"
+          },
+          "type_counts": {
+            "Solar": 30,
+            "Wind": 7
+          },
+          "weather_fields": [
+            "Temperature",
+            "Humidity",
+            "WindSpeed",
+            "GHI",
+            "Pressure"
+          ],
+          "cleaned_weather_dataset": "plant_weather_training_dataset.csv"
+        },
+        "future_weather": {
+          "future_weather_available": false,
+          "provider": "unavailable",
+          "status": "unavailable",
+          "message": "No future weather provider is integrated. Multi-day RF forecasts and LSTM horizons above one day require future/intermediate weather."
+        },
+        "reports": {
+          "current_metrics": true,
+          "historical_metrics": true,
+          "lstm_metrics": true,
+          "feature_importance": true
+        },
+        "limitations": [
+          "No future weather provider is integrated; no future forecast is fabricated.",
+          "All outputs are daily (MU/day). No hourly output exists.",
+          "Confidence values are null because no calibrated probabilistic model exists."
+        ]
+      },
+      "pass": true
+    },
+    "endpoint_matrix": [
+      {
+        "name": "Health",
+        "method": "GET",
+        "url": "/api/health",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 3.01,
+        "pass": true
+      },
+      {
+        "name": "Plants List",
+        "method": "GET",
+        "url": "/api/plants",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 4.0,
+        "pass": true
+      },
+      {
+        "name": "Plant Valid (kredl)",
+        "method": "GET",
+        "url": "/api/plants/kredl",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 7.99,
+        "pass": true
+      },
+      {
+        "name": "Plant Invalid",
+        "method": "GET",
+        "url": "/api/plants/NON_EXISTENT_PLANT",
+        "expected_code": 404,
+        "actual_code": 404,
+        "duration_ms": 1.01,
+        "pass": true
+      },
+      {
+        "name": "Weather List (Valid Plant & Range)",
+        "method": "GET",
+        "url": "/api/weather?plant_id=kredl&start_date=2026-08-01&end_date=2026-08-03",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 12.01,
+        "pass": true
+      },
+      {
+        "name": "Weather List (Missing plant_id)",
+        "method": "GET",
+        "url": "/api/weather",
+        "expected_code": 400,
+        "actual_code": 400,
+        "duration_ms": 2.0,
+        "pass": true
+      },
+      {
+        "name": "Weather List (Invalid Date)",
+        "method": "GET",
+        "url": "/api/weather?plant_id=kredl&start_date=not-a-date",
+        "expected_code": 400,
+        "actual_code": 400,
+        "duration_ms": 1.0,
+        "pass": true
+      },
+      {
+        "name": "Weather Plant (kredl)",
+        "method": "GET",
+        "url": "/api/weather/kredl?start_date=2026-08-01&end_date=2026-08-03",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 9.04,
+        "pass": true
+      },
+      {
+        "name": "Weather Plant Invalid",
+        "method": "GET",
+        "url": "/api/weather/INVALID_PLANT?start_date=2026-08-01",
+        "expected_code": 404,
+        "actual_code": 404,
+        "duration_ms": 1.01,
+        "pass": true
+      },
+      {
+        "name": "Generation List",
+        "method": "GET",
+        "url": "/api/generation",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 92.78,
+        "pass": true
+      },
+      {
+        "name": "Generation Plant (kredl)",
+        "method": "GET",
+        "url": "/api/generation/kredl",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 36.52,
+        "pass": true
+      },
+      {
+        "name": "Generation Plant Invalid",
+        "method": "GET",
+        "url": "/api/generation/INVALID_PLANT",
+        "expected_code": 404,
+        "actual_code": 404,
+        "duration_ms": 1.0,
+        "pass": true
+      },
+      {
+        "name": "Generation History",
+        "method": "GET",
+        "url": "/api/generation/history",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 65.55,
+        "pass": true
+      },
+      {
+        "name": "Forecast GET Valid (Singular)",
+        "method": "GET",
+        "url": "/api/forecast?plant_id=kredl&horizon=3&base_date=2026-08-01",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 1491.88,
+        "pass": true
+      },
+      {
+        "name": "Forecast GET Valid (Plural)",
+        "method": "GET",
+        "url": "/api/forecasts?plant_id=kredl&horizon=3&base_date=2026-08-01",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 992.21,
+        "pass": true
+      },
+      {
+        "name": "Forecast GET Missing plant_id",
+        "method": "GET",
+        "url": "/api/forecast?horizon=3",
+        "expected_code": 400,
+        "actual_code": 400,
+        "duration_ms": 2.02,
+        "pass": true
+      },
+      {
+        "name": "Forecast GET Invalid horizon",
+        "method": "GET",
+        "url": "/api/forecast?plant_id=kredl&horizon=999",
+        "expected_code": 400,
+        "actual_code": 400,
+        "duration_ms": 1.0,
+        "pass": true
+      },
+      {
+        "name": "Forecast GET Invalid plant",
+        "method": "GET",
+        "url": "/api/forecast?plant_id=FAKE_PLANT&horizon=3",
+        "expected_code": 404,
+        "actual_code": 404,
+        "duration_ms": 2.0,
+        "pass": true
+      },
+      {
+        "name": "Forecast GET Plant ID Path",
+        "method": "GET",
+        "url": "/api/forecast/kredl?horizon=3&base_date=2026-08-01",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 733.49,
+        "pass": true
+      },
+      {
+        "name": "Forecast POST Valid",
+        "method": "POST",
+        "url": "/api/forecast",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 538.44,
+        "pass": true
+      },
+      {
+        "name": "Forecast POST Invalid Body",
+        "method": "POST",
+        "url": "/api/forecast",
+        "expected_code": 400,
+        "actual_code": 400,
+        "duration_ms": 2.01,
+        "pass": true
+      },
+      {
+        "name": "Forecast POST Missing plant_id",
+        "method": "POST",
+        "url": "/api/forecast",
+        "expected_code": 400,
+        "actual_code": 400,
+        "duration_ms": 2.0,
+        "pass": true
+      },
+      {
+        "name": "Models Registry",
+        "method": "GET",
+        "url": "/api/models",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 2.0,
+        "pass": true
+      },
+      {
+        "name": "Model Valid (random_forest)",
+        "method": "GET",
+        "url": "/api/models/random_forest",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 1.0,
+        "pass": true
+      },
+      {
+        "name": "Model Valid (random_forest_daily)",
+        "method": "GET",
+        "url": "/api/models/random_forest_daily",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 1.0,
+        "pass": true
+      },
+      {
+        "name": "Model Invalid",
+        "method": "GET",
+        "url": "/api/models/non_existent_model",
+        "expected_code": 404,
+        "actual_code": 404,
+        "duration_ms": 2.02,
+        "pass": true
+      },
+      {
+        "name": "Explainability (kredl)",
+        "method": "GET",
+        "url": "/api/explainability/kredl?base_date=2026-08-01",
+        "expected_code": 200,
+        "actual_code": 200,
+        "duration_ms": 261.26,
+        "pass": true
+      },
+      {
+        "name": "Explainability Invalid Plant",
+        "method": "GET",
+        "url": "/api/explainability/FAKE_PLANT",
+        "expected_code": 404,
+        "actual_code": 404,
+        "duration_ms": 1.0,
+        "pass": true
+      }
+    ],
+    "plants": {
+      "count": 37,
+      "plants_summary": [
+        {
+          "id": "acme-kurukshethra",
+          "name": "ACME (KURUKSHETHRA)",
+          "type": "Solar",
+          "capacity_mw": 50.0,
+          "district": "Koppal",
+          "lat": null,
+          "lon": null
+        },
+        {
+          "id": "acme-riwari",
+          "name": "ACME (RIWARI)",
+          "type": "Solar",
+          "capacity_mw": 50.0,
+          "district": "Koppal",
+          "lat": null,
+          "lon": null
+        },
+        {
+          "id": "adyah-block-1",
+          "name": "ADYAH BLOCK 1",
+          "type": "Solar",
+          "capacity_mw": 150.0,
+          "district": "Koppal",
+          "lat": null,
+          "lon": null
+        },
+        {
+          "id": "adyah-block-10",
+          "name": "ADYAH BLOCK 10",
+          "type": "Solar",
+          "capacity_mw": 50.0,
+          "district": "Koppal",
+          "lat": null,
+          "lon": null
+        },
+        {
+          "id": "adyah-block-13",
+          "name": "ADYAH BLOCK 13",
+          "type": "Solar",
+          "capacity_mw": 50.0,
+          "district": "Koppal",
+          "lat": null,
+          "lon": null
+        }
+      ]
+    },
+    "weather": {
+      "plant_id": "kredl",
+      "returned_records_count": 3,
+      "first_record": {
+        "date": "2026-08-01",
+        "temperature": 25.21,
+        "humidity": 83.09,
+        "wind_speed": 4.88,
+        "ghi": 4.1808,
+        "pressure": 94.34,
+        "weather_imputed": false,
+        "source_sentinel_count": 0
+      }
+    },
+    "generation": {
+      "plant_id": "kredl",
+      "sample_count": 3,
+      "first_record": {
+        "date": "2026-08-01",
+        "generation_mu": 0.21,
+        "unit": "MU/day"
+      }
+    },
+    "models_tested": {
+      "rf": {
+        "status_code": 200,
+        "prediction_time_ms": 555.81,
+        "plant_id": "kredl",
+        "base_date": "2021-06-01",
+        "status": "ok",
+        "forecast_points": 1,
+        "sample_prediction": 0.3387499999999991,
+        "raw_prediction": 0.3387499999999991,
+        "unit": "MU/day",
+        "confidence": {
+          "lower_80": 0.3,
+          "upper_80": 0.4,
+          "lower_95": 0.28,
+          "upper_95": 0.49,
+          "std_dev": 0.0959,
+          "method": "ensemble_tree_quantiles",
+          "description": "Empirical quantiles across 100 estimators in fitted RandomForestRegressor"
+        },
+        "explanation": [
+          {
+            "feature": "Generation_lag_1",
+            "value": 0.28,
+            "impact": -0.1281,
+            "direction": "negative",
+            "rank": 1
+          },
+          {
+            "feature": "Generation_roll_3",
+            "value": 0.33,
+            "impact": -0.0926,
+            "direction": "negative",
+            "rank": 2
+          },
+          {
+            "feature": "Generation_roll_7",
+            "value": 0.3429,
+            "impact": -0.0889,
+            "direction": "negative",
+            "rank": 3
+          },
+          {
+            "feature": "Generation_lag_2",
+            "value": 0.4,
+            "impact": -0.0609,
+            "direction": "negative",
+            "rank": 4
+          },
+          {
+            "feature": "Generation_lag_7",
+            "value": 0.34,
+            "impact": -0.0517,
+            "direction": "negative",
+            "rank": 5
+          },
+          {
+            "feature": "Generation_lag_3",
+            "value": 0.31,
+            "impact": -0.0482,
+            "direction": "negative",
+            "rank": 6
+          },
+          {
+            "feature": "GHI",
+            "value": 6.1406,
+            "impact": 0.0292,
+            "direction": "positive",
+            "rank": 7
+          },
+          {
+            "feature": "Capacity_MW",
+            "value": 50.0,
+            "impact": -0.0247,
+            "direction": "negative",
+            "rank": 8
+          },
+          {
+            "feature": "GHI_lag_1",
+            "value": 6.6866,
+            "impact": 0.0148,
+            "direction": "positive",
+            "rank": 9
+          },
+          {
+            "feature": "Year",
+            "value": 2021.0,
+            "impact": -0.0058,
+            "direction": "negative",
+            "rank": 10
+          },
+          {
+            "feature": "Temperature",
+            "value": 26.95,
+            "impact": 0.0056,
+            "direction": "positive",
+            "rank": 11
+          },
+          {
+            "feature": "Temperature_lag_1",
+            "value": 26.9,
+            "impact": 0.0026,
+            "direction": "positive",
+            "rank": 12
+          },
+          {
+            "feature": "Pressure",
+            "value": 94.55,
+            "impact": -0.0023,
+            "direction": "negative",
+            "rank": 13
+          },
+          {
+            "feature": "Month_cos",
+            "value": -1.0,
+            "impact": 0.0021,
+            "direction": "positive",
+            "rank": 14
+          },
+          {
+            "feature": "Month",
+            "value": 6.0,
+            "impact": -0.0019,
+            "direction": "negative",
+            "rank": 15
+          },
+          {
+            "feature": "DayOfYear",
+            "value": 153.0,
+            "impact": -0.0017,
+            "direction": "negative",
+            "rank": 16
+          },
+          {
+            "feature": "Month_sin",
+            "value": 0.0,
+            "impact": -0.0015,
+            "direction": "negative",
+            "rank": 17
+          },
+          {
+            "feature": "WindSpeed",
+            "value": 1.39,
+            "impact": 0.0014,
+            "direction": "positive",
+            "rank": 18
+          },
+          {
+            "feature": "Humidity",
+            "value": 75.64,
+            "impact": 0.0014,
+            "direction": "positive",
+            "rank": 19
+          },
+          {
+            "feature": "DayOfYear_cos",
+            "value": -0.8729,
+            "impact": -0.0012,
+            "direction": "negative",
+            "rank": 20
+          },
+          {
+            "feature": "WindSpeed_lag_1",
+            "value": 2.95,
+            "impact": 0.0009,
+            "direction": "positive",
+            "rank": 21
+          },
+          {
+            "feature": "Humidity_lag_1",
+            "value": 74.64,
+            "impact": 0.0005,
+            "direction": "positive",
+            "rank": 22
+          },
+          {
+            "feature": "DayOfYear_sin",
+            "value": 0.4878,
+            "impact": 0.0004,
+            "direction": "positive",
+            "rank": 23
+          },
+          {
+            "feature": "DayOfWeek",
+            "value": 2.0,
+            "impact": -0.0003,
+            "direction": "negative",
+            "rank": 24
+          }
+        ]
+      },
+      "solar_lstm": {
+        "status_code": 200,
+        "prediction_time_ms": 227.82,
+        "plant_id": "kredl",
+        "base_date": "2026-08-01",
+        "status": "ok",
+        "forecast_points": 1,
+        "sample_prediction": 0.347371425697783,
+        "raw_prediction": 0.347371425697783,
+        "unit": "MU/day",
+        "confidence": {
+          "lower_80": 0.0471,
+          "upper_80": 0.6477,
+          "lower_95": 0.0,
+          "upper_95": 0.8072,
+          "std_dev": 0.2346,
+          "method": "test_set_residual_error",
+          "description": "Residual-based prediction interval from Solar LSTM test set evaluation (RMSE=0.2346 MU/day)"
+        },
+        "explanation": null
+      },
+      "wind_lstm": {
+        "status_code": 200,
+        "prediction_time_ms": 523.26,
+        "plant_id": "gadag-vena-w",
+        "base_date": "2026-08-01",
+        "status": "ok",
+        "forecast_points": 1,
+        "sample_prediction": 3.0174571997662865,
+        "raw_prediction": 3.0174571997662865,
+        "unit": "MU/day",
+        "confidence": {
+          "lower_80": 1.7323,
+          "upper_80": 4.3026,
+          "lower_95": 1.0496,
+          "upper_95": 4.9853,
+          "std_dev": 1.004,
+          "method": "test_set_residual_error",
+          "description": "Residual-based prediction interval from Wind LSTM test set evaluation (RMSE=1.0040 MU/day)"
+        },
+        "explanation": null
+      }
+    },
+    "horizons_tested": {
+      "horizon_1": {
+        "status_code": 200,
+        "status": "ok",
+        "points_returned": 1,
+        "expected_points": 1,
+        "dates_ordered": true,
+        "start_date": "2021-06-02",
+        "end_date": "2021-06-02"
+      },
+      "horizon_3": {
+        "status_code": 200,
+        "status": "ok",
+        "points_returned": 3,
+        "expected_points": 3,
+        "dates_ordered": true,
+        "start_date": "2021-06-02",
+        "end_date": "2021-06-04"
+      },
+      "horizon_7": {
+        "status_code": 200,
+        "status": "ok",
+        "points_returned": 7,
+        "expected_points": 7,
+        "dates_ordered": true,
+        "start_date": "2021-06-02",
+        "end_date": "2021-06-08"
+      }
+    },
+    "database": {
+      "plants_in_db": 37,
+      "models_in_db": 3,
+      "forecast_records_in_db": 55,
+      "latest_stored_forecast": {
+        "id": 55,
+        "plant_id": "kredl",
+        "model_id": "random_forest_daily",
+        "horizon": 2,
+        "items_count": 2
+      }
+    },
+    "metrics": {
+      "random_forest_daily": {
+        "name": "Random Forest (daily, leakage-free, solar + wind)",
+        "target": null,
+        "metrics": {
+          "historical_committed_metrics_25f": {
+            "MAE": 0.11163797642553697,
+            "RMSE": 0.30033888392373304,
+            "R2": 0.8711579851453006,
+            "source": "reports/generation_metrics.csv",
+            "status": "historical actual metric from the removed 25-feature leaked contract",
+            "comparable_to_current_model": false,
+            "note": "Preserved for provenance only. The original 22,764-row / 25-plant dataset and _split are absent, so these values are not reproduced."
+          },
+          "leakage_free_metrics_24f": {
+            "MAE": 0.132150218240383,
+            "RMSE": 0.28278781980879913,
+            "R2": 0.8970816491056874,
+            "source": "reports/generation_metrics_leakage_free.csv",
+            "status": "current production-candidate metric",
+            "train_rows": 23268,
+            "test_rows": 5842,
+            "plants": 37,
+            "features": 24
+          }
+        }
+      },
+      "solar_lstm_daily": {
+        "name": "Solar LSTM (daily)",
+        "target": null,
+        "metrics": {
+          "MAE": 0.14415674553172728,
+          "RMSE": 0.23457871027794697,
+          "R2": 0.8668192421925991,
+          "source": "reports/lstm_metrics.csv",
+          "status": "committed actual metric, not reproduced"
+        }
+      },
+      "wind_lstm_daily": {
+        "name": "Wind LSTM (daily)",
+        "target": null,
+        "metrics": {
+          "MAE": 0.6832080933787058,
+          "RMSE": 1.0040038958594333,
+          "R2": 0.4361064856242217,
+          "source": "reports/lstm_metrics.csv",
+          "status": "committed actual metric, not reproduced"
+        }
+      }
+    },
+    "summary": {
+      "all_endpoints_pass": true,
+      "total_endpoints_tested": 28,
+      "failed_endpoints_count": 0
+    }
+  }
+}

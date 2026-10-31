@@ -3,16 +3,16 @@ import { cx } from '../../utils/format.js'
 
 const VARIANTS = {
   primary:
-    'bg-brand-500 text-graphite-950 shadow-[0_6px_24px_-10px_rgba(20,184,166,0.85)] hover:bg-brand-400 focus-visible:ring-brand-400/50 active:bg-brand-600',
+    'bg-emerald-700 text-white shadow-sm hover:bg-emerald-600 focus-visible:ring-emerald-500/50 active:bg-emerald-800 keep-white',
   secondary:
-    'bg-graphite-800 text-graphite-100 ring-1 ring-inset ring-white/10 hover:bg-graphite-750 hover:ring-white/20 focus-visible:ring-brand-400/40',
-  ghost: 'text-graphite-300 hover:bg-white/5 hover:text-white focus-visible:ring-brand-400/30',
+    'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-emerald-500/30 shadow-sm',
+  ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 focus-visible:ring-emerald-500/30',
   outline:
-    'bg-transparent text-brand-300 ring-1 ring-inset ring-brand-400/30 hover:bg-brand-400/10 focus-visible:ring-brand-400/50',
+    'bg-transparent text-emerald-800 border border-emerald-700/40 hover:bg-emerald-50 focus-visible:ring-emerald-500/40',
   solar:
-    'bg-solar-400 text-graphite-950 shadow-[0_6px_24px_-10px_rgba(245,158,11,0.85)] hover:bg-solar-300 focus-visible:ring-solar-400/50',
-  danger: 'bg-rose-500 text-white hover:bg-rose-400 focus-visible:ring-rose-400/50',
-  dark: 'bg-graphite-950 text-white ring-1 ring-inset ring-white/10 hover:bg-black focus-visible:ring-white/20',
+    'bg-amber-500 text-slate-950 shadow-sm hover:bg-amber-400 focus-visible:ring-amber-400/50 font-semibold',
+  danger: 'bg-rose-600 text-white hover:bg-rose-500 focus-visible:ring-rose-400/50 keep-white',
+  dark: 'bg-slate-900 text-white hover:bg-slate-800 keep-white',
 }
 
 const SIZES = {
@@ -31,7 +31,7 @@ const Button = forwardRef(function Button(
       ref={ref}
       className={cx(
         'inline-flex select-none items-center justify-center rounded-lg font-semibold tracking-tight',
-        'outline-none transition-all duration-200 ease-smooth focus-visible:ring-2',
+        'outline-none transition-all duration-150 ease-in-out focus-visible:ring-2',
         'disabled:pointer-events-none disabled:opacity-50',
         VARIANTS[variant] || VARIANTS.secondary,
         SIZES[size] || SIZES.md,
